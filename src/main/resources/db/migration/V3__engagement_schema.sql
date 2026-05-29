@@ -1,0 +1,3 @@
+-- Engagement schema is migrated from the existing database schema.
+-- Legacy outbox/processed event tables were intentionally not copied; Spring
+-- Modulith manages event publication through its Event Publication Registry.
