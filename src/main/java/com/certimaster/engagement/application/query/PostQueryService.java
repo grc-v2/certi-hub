@@ -65,7 +65,7 @@ public class PostQueryService {
     }
 
     public PageResponse<PostResponse> getPostsByAuthor(GetPostsByAuthorQuery query) {
-        Pageable pageable = PageRequest.of(query.page(), query.size(), Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(query.page(), query.size());
         Page<PostSummaryProjection> postPage = postRepository.findByAuthorIdSummary(query.authorId(), pageable);
         return toPostSummaryPage(postPage);
     }
@@ -77,7 +77,7 @@ public class PostQueryService {
     }
 
     public PageResponse<PostResponse> getPostsByTags(GetPostsByTagsQuery query) {
-        Pageable pageable = PageRequest.of(query.page(), query.size(), Sort.by(Sort.Direction.DESC, "publishedAt"));
+        Pageable pageable = PageRequest.of(query.page(), query.size());
         Page<PostSummaryProjection> postPage = postRepository.findByTagNamesAndStatusSummary(
                 query.tagNames(),
                 PostStatus.PUBLISHED.name(),
@@ -94,7 +94,7 @@ public class PostQueryService {
     }
 
     public PageResponse<PostResponse> getFeaturedPosts(GetFeaturedPostsQuery query) {
-        Pageable pageable = PageRequest.of(query.page(), query.size(), Sort.by(Sort.Direction.DESC, "publishedAt"));
+        Pageable pageable = PageRequest.of(query.page(), query.size());
         Page<PostSummaryProjection> postPage = postRepository.findFeaturedPostSummaries(
                 PostStatus.PUBLISHED.name(),
                 pageable);

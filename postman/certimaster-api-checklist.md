@@ -12,6 +12,10 @@ Generated from Spring MVC controllers in `src/main/java/com/certimaster`.
 
 ## Endpoint Checklist
 
+### Shared / Lookups
+
+- [ ] `GET /api/v1/lookups` - Public (query: `includeInactive, certificationId`) - Returns centralized constants and catalog options for frontend combo boxes.
+
 ### Identity / Auth
 
 - [ ] `POST /api/v1/auth/register` - Public (body: `register`) - Public registration endpoint.

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -105,5 +106,21 @@ class PostQueryServiceTest {
         assertThat(response.getViewsCount()).isEqualTo(100);
         assertThat(response.getTags()).extracting(TagResponse::getName).containsExactly("Java");
         verify(postRepository).findTagSummariesByPostIds(List.of(1L));
+    }
+
+    @Test
+    void authorPostsUseUnsortedPageableBecauseNativeQueryOwnsOrdering() {
+        PostSummaryProjection post = mock(PostSummaryProjection.class);
+        when(post.getId()).thenReturn(1L);
+
+        when(postRepository.findByAuthorIdSummary(eq(42L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(post)));
+        when(postRepository.findTagSummariesByPostIds(List.of(1L))).thenReturn(List.of());
+
+        service.getPostsByAuthor(new GetPostsByAuthorQuery(42L, 0, 10));
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(postRepository).findByAuthorIdSummary(eq(42L), pageable.capture());
+        assertThat(pageable.getValue().getSort().isUnsorted()).isTrue();
     }
 }

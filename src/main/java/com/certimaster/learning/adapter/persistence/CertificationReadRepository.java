@@ -1,6 +1,7 @@
 package com.certimaster.learning.adapter.persistence;
 
 import com.certimaster.learning.domain.entity.Certification;
+import com.certimaster.learning.adapter.persistence.projection.CertificationLookupProjection;
 import com.certimaster.learning.adapter.persistence.projection.CertificationSummaryProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,6 +21,22 @@ public interface CertificationReadRepository extends JpaRepository<Certification
 
     @Query("SELECT c FROM Certification c WHERE c.id = :id AND c.status != 'DELETED'")
     Optional<Certification> findActiveById(@Param("id") Long id);
+
+    @Query("""
+        SELECT c.id AS id,
+               c.name AS name,
+               c.code AS code,
+               c.slug AS slug,
+               c.provider AS provider,
+               c.providerName AS providerName,
+               c.providerLogo AS providerLogo,
+               c.status AS status
+        FROM Certification c
+        WHERE c.status != 'DELETED'
+          AND (:includeInactive = true OR c.status = 'ACTIVE')
+        ORDER BY COALESCE(c.providerName, c.provider), c.name
+        """)
+    List<CertificationLookupProjection> findLookupOptions(@Param("includeInactive") boolean includeInactive);
 
     @Query("""
         SELECT c.id AS id,

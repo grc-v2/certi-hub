@@ -32,4 +32,13 @@ public interface TagReadRepository extends JpaRepository<Tag, Long> {
 
     @Query("SELECT t FROM Tag t WHERE t.status IS NULL OR t.status != 'DELETED'")
     List<Tag> findAllActive();
+
+    @Query("""
+            SELECT t
+            FROM Tag t
+            WHERE (t.status IS NULL OR t.status != 'DELETED')
+              AND (:includeInactive = true OR t.status IS NULL OR t.status = 'ACTIVE')
+            ORDER BY t.name
+            """)
+    List<Tag> findLookupOptions(@Param("includeInactive") boolean includeInactive);
 }

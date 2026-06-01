@@ -152,6 +152,58 @@
   ],
   "item": [
     {
+      "name": "Shared / Lookups",
+      "item": [
+        {
+          "name": "Get lookup data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/lookups?includeInactive=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "lookups"
+              ],
+              "query": [
+                {
+                  "key": "includeInactive",
+                  "value": "false"
+                },
+                {
+                  "key": "certificationId",
+                  "value": "{{certificationId}}",
+                  "description": "Optional. Enable this query parameter to return domains for a single certification.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Public endpoint returning centralized constants and catalog options for frontend combo boxes.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is not 5xx', function () {",
+                  "  pm.expect(pm.response.code).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Identity / Auth",
       "item": [
         {
