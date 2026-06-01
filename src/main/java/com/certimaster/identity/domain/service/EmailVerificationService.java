@@ -5,8 +5,6 @@ import com.certimaster.identity.domain.entity.EmailVerificationToken;
 import com.certimaster.identity.domain.entity.User;
 import com.certimaster.identity.adapter.persistence.EmailVerificationTokenRepository;
 import com.certimaster.identity.adapter.persistence.UserWriteRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +14,6 @@ import java.util.UUID;
 @Service
 public class EmailVerificationService {
 
-    private static final Logger log = LoggerFactory.getLogger(EmailVerificationService.class);
 
     private final EmailVerificationTokenRepository tokenRepository;
     private final UserWriteRepository userRepository;
@@ -40,12 +37,6 @@ public class EmailVerificationService {
 
         tokenRepository.save(verificationToken);
         return token;
-    }
-
-    public void sendVerificationEmail(String email, String token) {
-
-        String verificationLink = String.format("http://localhost:8081/api/v1/auth/verify-email?token=%s", token);
-        log.info("Verification link for {}: {}", email, verificationLink);
     }
 
     @Transactional

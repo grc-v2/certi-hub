@@ -9,8 +9,6 @@ import com.certimaster.learning.domain.entity.QuestionBank;
 import com.certimaster.learning.domain.entity.QuestionBankItem;
 import com.certimaster.learning.adapter.persistence.QuestionBankItemRepository;
 import com.certimaster.learning.adapter.persistence.QuestionReadRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,7 +20,6 @@ import java.util.stream.Collectors;
 @Service
 public class QuestionSelectionService  {
 
-    private static final Logger log = LoggerFactory.getLogger(QuestionSelectionService.class);
 
     private final QuestionReadRepository questionRepository;
     private final QuestionBankItemRepository questionBankItemRepository;
@@ -41,8 +38,6 @@ public class QuestionSelectionService  {
     }
 
     public List<Question> selectQuestionsFromBank(QuestionBank bank, QuestionSelectionCriteria criteria) {
-        log.info("Selecting {} questions from bank {}", criteria.questionCount(), bank.getId());
-
         List<QuestionBankItem> items = questionBankItemRepository.findByQuestionBankIdOrderByPositionAsc(bank.getId());
 
         List<Question> candidates = items.stream()
@@ -73,9 +68,6 @@ public class QuestionSelectionService  {
     }
 
     public List<Question> selectPracticeQuestions(PracticeQuestionCriteria criteria) {
-        log.info("Selecting {} practice questions for certification {}",
-                criteria.questionCount(), criteria.certificationId());
-
         List<Question> candidates;
 
         if (criteria.questionBankId() != null) {

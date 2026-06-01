@@ -14,8 +14,6 @@ import com.certimaster.learning.domain.service.ExamSessionQuestionInitializer;
 import com.certimaster.learning.domain.service.QuestionSelectionService;
 import com.certimaster.learning.adapter.web.response.QuestionResponse;
 import com.certimaster.learning.domain.entity.Question;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +27,6 @@ import static com.certimaster.learning.domain.service.ExamSessionGuard.STATUS_IN
 @Component
 class StartPracticeSessionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(StartPracticeSessionHandler.class);
 
     private final UserExamSessionRepository userExamSessionRepository;
     private final CertificationWriteRepository certificationRepository;
@@ -51,8 +48,6 @@ class StartPracticeSessionHandler {
 
     @Transactional
     ExamSessionResponse handle(StartPracticeSessionCommand command) {
-        log.info("Starting practice session for user {} certification {}", command.userId(), command.certificationId());
-
         validateConcurrentSessions(command.userId());
 
         Certification certification = certificationRepository.findById(command.certificationId())

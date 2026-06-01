@@ -15,8 +15,6 @@ import com.certimaster.learning.domain.entity.QuestionOption;
 import com.certimaster.learning.adapter.web.mapper.QuestionMapper;
 import com.certimaster.learning.adapter.persistence.QuestionOptionRepository;
 import com.certimaster.learning.adapter.persistence.QuestionWriteRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +24,6 @@ import java.util.List;
 @Transactional
 public class QuestionCommandService {
 
-    private static final Logger log = LoggerFactory.getLogger(QuestionCommandService.class);
 
     private static final String QUESTION = "Question";
     private static final String DOMAIN = "CertificationDomain";
@@ -47,8 +44,6 @@ public class QuestionCommandService {
     }
 
     public QuestionResponse create(CreateQuestionCommand command) {
-        log.debug("Creating question for domain: {}", command.domainId());
-
         CertificationDomain domain = findDomainOrThrow(command.domainId());
         validateOptions(command.type(), command.options());
 
@@ -58,13 +53,10 @@ public class QuestionCommandService {
         Question saved = questionRepository.save(question);
         createOptions(saved, command.options());
 
-        log.info("Created question with id: {}", saved.getId());
         return questionMapper.toResponse(saved);
     }
 
     public QuestionResponse update(UpdateQuestionCommand command) {
-        log.debug("Updating question with id: {}", command.id());
-
         Question question = findOrThrow(command.id());
         validateOptions(command.type(), command.options());
 
@@ -80,14 +72,10 @@ public class QuestionCommandService {
         createOptions(question, command.options());
 
         Question saved = questionRepository.save(question);
-        log.info("Updated question with id: {}", saved.getId());
-
         return questionMapper.toResponse(saved);
     }
 
     public QuestionResponse updateStatus(UpdateQuestionStatusCommand command) {
-        log.debug("Updating question {} status to {}", command.id(), command.status());
-
         if (command.status() == null || command.status().isBlank()) {
             throw BusinessException.invalidInput("Status is required");
         }
@@ -112,15 +100,12 @@ public class QuestionCommandService {
         }
 
         Question saved = questionRepository.save(question);
-        log.info("Question {} status changed: {} -> {}", command.id(), previousStatus, normalized);
         return questionMapper.toResponse(saved);
     }
 
     public void delete(DeleteQuestionCommand command) {
-        log.debug("Deleting question with id: {}", command.id());
         Question question = findOrThrow(command.id());
         questionRepository.delete(question);
-        log.info("Deleted question with id: {}", command.id());
     }
 
     private Question findOrThrow(Long id) {

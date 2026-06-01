@@ -17,8 +17,6 @@ import com.certimaster.learning.domain.entity.Certification;
 import com.certimaster.learning.domain.entity.CertificationDomain;
 import com.certimaster.learning.adapter.persistence.CertificationDomainReadRepository;
 import com.certimaster.learning.adapter.persistence.CertificationReadRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +31,6 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class CertificationQueryService {
 
-    private static final Logger log = LoggerFactory.getLogger(CertificationQueryService.class);
 
     private static final String CERTIFICATION = "Certification";
 
@@ -54,8 +51,6 @@ public class CertificationQueryService {
 
     @Cacheable("certification-list")
     public PageResponse<CertificationResponse> search(SearchCertificationsQuery query) {
-        log.debug("Searching certifications with criteria: {}", query);
-
         Sort sort = createSort(query.sortBy(), query.sortDirection());
         Pageable pageable = PageRequest.of(query.page(), query.size(), sort);
 
@@ -74,8 +69,6 @@ public class CertificationQueryService {
 
     @Cacheable(value = "certification-detail", key = "#query.slug()")
     public CertificationDetailResponse getBySlug(GetCertificationBySlugQuery query) {
-        log.debug("Getting certification by slug: {}", query.slug());
-
         Certification certification = certificationRepository.findActiveBySlug(query.slug())
                 .orElseThrow(() -> ResourceNotFoundException.byField(CERTIFICATION, "slug", query.slug()));
 
@@ -83,8 +76,6 @@ public class CertificationQueryService {
     }
 
     public CertificationDetailResponse getById(GetCertificationByIdQuery query) {
-        log.debug("Getting certification by id: {}", query.id());
-
         Certification certification = certificationRepository.findActiveById(query.id())
                 .orElseThrow(() -> ResourceNotFoundException.byId(CERTIFICATION, query.id()));
 
@@ -93,8 +84,6 @@ public class CertificationQueryService {
 
     @Cacheable(value = "domain-tree", key = "#query.slug()")
     public List<CertificationDomainResponse> getDomainTree(GetCertificationDomainTreeBySlugQuery query) {
-        log.debug("Getting domain tree for certification slug: {}", query.slug());
-
         Certification certification = certificationRepository.findActiveBySlug(query.slug())
                 .orElseThrow(() -> ResourceNotFoundException.byField(CERTIFICATION, "slug", query.slug()));
 
@@ -105,8 +94,6 @@ public class CertificationQueryService {
     }
 
     public Page<CertificationResponse> searchFullText(SearchCertificationsFullTextQuery query) {
-        log.debug("Full-text searching certifications with query: {}", query.query());
-
         Pageable pageable = PageRequest.of(query.page(), query.size());
         Page<CertificationSummaryProjection> results = certificationRepository.searchFullTextSummary(query.query(), pageable);
 

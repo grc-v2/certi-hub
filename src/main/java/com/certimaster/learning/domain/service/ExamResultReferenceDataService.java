@@ -36,7 +36,6 @@ public class ExamResultReferenceDataService {
             return Optional.empty();
         }
         try {
-            log.info("Fetching exam directly from ExamQueryService: {}", examId);
             var response = examQueryService.getById(new GetExamByIdQuery(examId));
             if (response != null) {
                 ExamInfo info = ExamInfo.builder()
@@ -51,7 +50,6 @@ public class ExamResultReferenceDataService {
                         .certificationId(response.getCertificationId())
                         .certificationName(response.getCertificationName())
                         .build();
-                log.info("Successfully fetched exam {}: title={}", examId, info.getTitle());
                 return Optional.of(info);
             }
         } catch (Exception e) {
@@ -68,7 +66,6 @@ public class ExamResultReferenceDataService {
         for (Long examId : examIds) {
             getExam(examId).ifPresent(info -> result.put(examId, info));
         }
-        log.debug("Fetched {} exams out of {} requested", result.size(), examIds.size());
         return result;
     }
 
@@ -78,7 +75,6 @@ public class ExamResultReferenceDataService {
             return Optional.empty();
         }
         try {
-            log.info("Fetching certification directly from CertificationQueryService: {}", certificationId);
             var response = certificationQueryService.getById(new GetCertificationByIdQuery(certificationId));
             if (response != null) {
                 CertificationInfo info = CertificationInfo.builder()
@@ -93,7 +89,6 @@ public class ExamResultReferenceDataService {
                         .passingScore(response.getPassingScore())
                         .status(response.getStatus())
                         .build();
-                log.info("Successfully fetched certification {}: name={}", certificationId, info.getName());
                 return Optional.of(info);
             }
         } catch (Exception e) {
@@ -110,7 +105,6 @@ public class ExamResultReferenceDataService {
         for (Long certId : certificationIds) {
             getCertification(certId).ifPresent(info -> result.put(certId, info));
         }
-        log.debug("Fetched {} certifications out of {} requested", result.size(), certificationIds.size());
         return result;
     }
 }

@@ -5,8 +5,6 @@ import com.certimaster.identity.domain.entity.User;
 import com.certimaster.identity.adapter.persistence.UserWriteRepository;
 import com.certimaster.identity.domain.service.AvatarStorageService;
 import jakarta.persistence.EntityNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +13,6 @@ import java.util.Map;
 @Service
 public class ProfileCommandService {
 
-    private static final Logger log = LoggerFactory.getLogger(ProfileCommandService.class);
 
     private final UserWriteRepository userRepository;
     private final AvatarStorageService avatarStorageService;
@@ -37,7 +34,6 @@ public class ProfileCommandService {
         if (command.learningPreferences() != null) user.setLearningPreferences(command.learningPreferences());
 
         userRepository.save(user);
-        log.info("Profile updated for userId={}", command.userId());
         return buildResponse(user);
     }
 
@@ -47,7 +43,6 @@ public class ProfileCommandService {
         String avatarUrl = avatarStorageService.uploadAvatar(command.userId(), command.file());
         user.setAvatarUrl(avatarUrl);
         userRepository.save(user);
-        log.info("Avatar updated for userId={}", command.userId());
         return avatarUrl;
     }
 

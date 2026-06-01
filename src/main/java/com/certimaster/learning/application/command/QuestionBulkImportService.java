@@ -70,7 +70,6 @@ public class QuestionBulkImportService {
             }
         }
 
-        log.info("Bulk import completed: {}/{} succeeded", successCount, command.questions().size());
         return new BulkImportResponse(command.questions().size(), successCount, failureCount, errors);
     }
 }

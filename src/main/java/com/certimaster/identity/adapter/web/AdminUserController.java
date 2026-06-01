@@ -19,8 +19,6 @@ import com.certimaster.identity.application.query.GetAdminUserByIdQuery;
 import com.certimaster.identity.application.query.GetUserActiveSessionsQuery;
 import com.certimaster.identity.application.query.ListUsersQuery;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -46,7 +44,6 @@ import java.util.Map;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
 
-    private static final Logger log = LoggerFactory.getLogger(AdminUserController.class);
 
     private final AdminUserService adminUserService;
     private final AdminUserQueryService adminUserQueryService;
@@ -65,7 +62,6 @@ public class AdminUserController {
             @RequestParam(required = false) LocalDate registrationDateFrom,
             @RequestParam(required = false) LocalDate registrationDateTo) {
 
-        log.info("GET /api/admin/users - page={}, size={}, search={}", pageable.getPageNumber(), pageable.getPageSize(), search);
         Page<UserSummaryResponse> users = adminUserQueryService.listUsers(new ListUsersQuery(
                 pageable,
                 search,
@@ -79,7 +75,6 @@ public class AdminUserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDetailResponse> getUserById(@PathVariable Long id) {
-        log.info("GET /api/admin/users/{}", id);
         return ResponseEntity.ok(adminUserQueryService.getUserById(new GetAdminUserByIdQuery(id)));
     }
 
@@ -88,59 +83,50 @@ public class AdminUserController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateUserRequest request) {
 
-        log.info("PUT /api/admin/users/{}", id);
         return ResponseEntity.ok(adminUserService.updateUser(toUpdateCommand(id, request)));
     }
 
     @PatchMapping("/{id}/activate")
     public ResponseEntity<Void> activateUser(@PathVariable Long id) {
-        log.info("PATCH /api/admin/users/{}/activate", id);
         adminUserService.activateUser(new ChangeAdminUserStatusCommand(id, "ACTIVE"));
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/deactivate")
     public ResponseEntity<Void> deactivateUser(@PathVariable Long id) {
-        log.info("PATCH /api/admin/users/{}/deactivate", id);
         adminUserService.deactivateUser(new ChangeAdminUserStatusCommand(id, "INACTIVE"));
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        log.info("DELETE /api/admin/users/{}", id);
         adminUserService.deleteUser(new DeleteAdminUserCommand(id));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/bulk/activate")
     public ResponseEntity<BulkOperationResult> bulkActivate(@Valid @RequestBody BulkUserRequest request) {
-        log.info("POST /api/admin/users/bulk/activate - count={}", request.getUserIds().size());
         return ResponseEntity.ok(adminUserService.bulkActivate(new BulkChangeUserStatusCommand(request.getUserIds(), "ACTIVE")));
     }
 
     @PostMapping("/bulk/deactivate")
     public ResponseEntity<BulkOperationResult> bulkDeactivate(@Valid @RequestBody BulkUserRequest request) {
-        log.info("POST /api/admin/users/bulk/deactivate - count={}", request.getUserIds().size());
         return ResponseEntity.ok(adminUserService.bulkDeactivate(new BulkChangeUserStatusCommand(request.getUserIds(), "INACTIVE")));
     }
 
     @GetMapping("/{id}/sessions/active")
     public ResponseEntity<List<Map<String, Object>>> getActiveSessions(@PathVariable Long id) {
-        log.info("GET /api/admin/users/{}/sessions/active", id);
         return ResponseEntity.ok(adminUserQueryService.getActiveSessions(new GetUserActiveSessionsQuery(id)));
     }
 
     @DeleteMapping("/{id}/sessions/{sessionId}")
     public ResponseEntity<Void> forceLogoutSession(@PathVariable Long id, @PathVariable String sessionId) {
-        log.info("DELETE /api/admin/users/{}/sessions/{}", id, sessionId);
         adminUserService.forceLogoutSession(new ForceLogoutUserSessionCommand(id, sessionId));
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}/sessions")
     public ResponseEntity<Map<String, Integer>> forceLogoutAllSessions(@PathVariable Long id) {
-        log.info("DELETE /api/admin/users/{}/sessions", id);
         int count = adminUserService.forceLogoutAllSessions(new ForceLogoutAllUserSessionsCommand(id));
         return ResponseEntity.ok(Map.of("count", count));
     }

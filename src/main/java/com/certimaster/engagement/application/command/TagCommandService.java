@@ -16,8 +16,6 @@ import com.certimaster.engagement.adapter.web.response.TagResponse;
 import com.certimaster.engagement.domain.entity.PostTag;
 import com.certimaster.engagement.adapter.web.mapper.TagMapper;
 import com.certimaster.engagement.adapter.persistence.PostTagWriteRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +29,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class TagCommandService {
 
-    private static final Logger log = LoggerFactory.getLogger(TagCommandService.class);
     private static final Pattern NON_ALPHANUMERIC = Pattern.compile("[^a-z0-9\\s-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]+");
     private static final Pattern MULTIPLE_HYPHENS = Pattern.compile("-+");
@@ -52,8 +49,6 @@ public class TagCommandService {
     }
 
     public TagResponse createTag(CreateTagCommand command) {
-        log.debug("Creating tag with name: {}", command.name());
-
         if (tagRepository.existsByName(command.name())) {
             throw BusinessException.duplicateResource("Tag", command.name());
         }
@@ -62,14 +57,10 @@ public class TagCommandService {
         tag.setSlug(generateUniqueSlug(command.name()));
 
         PostTag savedTag = tagRepository.save(tag);
-        log.info("Created tag with id: {} and slug: {}", savedTag.getId(), savedTag.getSlug());
-
         return buildTagResponse(savedTag);
     }
 
     public TagResponse updateTag(UpdateTagCommand command) {
-        log.debug("Updating tag: {}", command.id());
-
         PostTag tag = findTagById(command.id());
 
         if (tagRepository.existsByNameAndIdNot(command.name(), command.id())) {
@@ -79,26 +70,18 @@ public class TagCommandService {
         tagMapper.updateEntity(tag, command);
 
         PostTag savedTag = tagRepository.save(tag);
-        log.info("Updated tag: {}", savedTag.getId());
-
         return buildTagResponse(savedTag);
     }
 
     public void deleteTag(DeleteTagCommand command) {
-        log.debug("Deleting tag: {}", command.id());
-
         PostTag tag = findTagById(command.id());
 
         tagMappingRepository.deleteByTagId(command.id());
         tagRepository.delete(tag);
-        log.info("Deleted tag: {}", command.id());
     }
 
     public void assignTagsToPost(AssignTagsToPostCommand command) {
-        log.debug("Assigning tags {} to post: {}", command.tagNames(), command.postId());
-
         if (command.tagNames() == null || command.tagNames().isEmpty()) {
-            log.debug("No tags to assign to post: {}", command.postId());
             return;
         }
 
@@ -121,25 +104,19 @@ public class TagCommandService {
                         .slug(generateUniqueSlug(tagName))
                         .build();
                 tag = tagRepository.save(tag);
-                log.info("Auto-created new tag: {} with slug: {}", tag.getName(), tag.getSlug());
             }
 
             PostTagMapping mapping = tagMappingRepository.save(new PostTagMapping(post, tag));
             post.getTagMappings().add(mapping);
         }
 
-        log.info("Assigned {} tags to post: {}", command.tagNames().size(), command.postId());
     }
 
     public void removeAllTagsFromPost(RemoveAllTagsFromPostCommand command) {
-        log.debug("Removing all tags from post: {}", command.postId());
         tagMappingRepository.deleteByPostId(command.postId());
-        log.info("Removed all tags from post: {}", command.postId());
     }
 
     public TagResponse ensureTag(EnsureTagCommand command) {
-        log.debug("Ensuring tag exists with name: {}", command.name());
-
         return tagRepository.findByName(command.name())
                 .map(this::buildTagResponse)
                 .orElseGet(() -> createTag(new CreateTagCommand(command.name())));

@@ -18,8 +18,6 @@ import com.certimaster.learning.adapter.web.response.QuestionResponse;
 import com.certimaster.learning.domain.entity.Question;
 import com.certimaster.learning.adapter.web.mapper.QuestionMapper;
 import com.certimaster.learning.adapter.persistence.QuestionReadRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +35,6 @@ import java.util.Map;
 @Transactional(readOnly = true)
 public class QuestionQueryService {
 
-    private static final Logger log = LoggerFactory.getLogger(QuestionQueryService.class);
 
     private static final String QUESTION = "Question";
     private static final String EXAM = "Exam";
@@ -58,8 +55,6 @@ public class QuestionQueryService {
     }
 
     public PageResponse<QuestionResponse> search(SearchQuestionsQuery query) {
-        log.debug("Searching questions with criteria: {}", query);
-
         Sort sort = createSort(query.sortBy(), query.sortDirection());
         Pageable pageable = PageRequest.of(query.page(), query.size(), sort);
 
@@ -78,8 +73,6 @@ public class QuestionQueryService {
     }
 
     public ExamQuestionsGroupedResponse getQuestionsByExamId(GetQuestionsByExamQuery query) {
-        log.debug("Getting questions for exam id: {}", query.examId());
-
         Exam exam = examRepository.findById(query.examId())
                 .orElseThrow(() -> ResourceNotFoundException.byId(EXAM, query.examId()));
 
@@ -139,19 +132,16 @@ public class QuestionQueryService {
     }
 
     public QuestionResponse getById(GetQuestionByIdQuery query) {
-        log.debug("Getting question by id: {}", query.id());
         Question question = findOrThrow(query.id());
         return questionMapper.toResponse(question);
     }
 
     public QuestionResponse getByIdForExam(GetQuestionForExamQuery query) {
-        log.debug("Getting question by id for exam: {}", query.id());
         Question question = findOrThrow(query.id());
         return questionMapper.toResponseWithoutCorrect(question);
     }
 
     public List<QuestionResponse> getByDomainId(GetQuestionsByDomainQuery query) {
-        log.debug("Getting questions by domain id: {}", query.domainId());
         return questionRepository.findByDomainId(query.domainId()).stream()
                 .map(questionMapper::toResponse)
                 .toList();

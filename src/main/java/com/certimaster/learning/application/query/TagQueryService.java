@@ -7,8 +7,6 @@ import com.certimaster.learning.adapter.persistence.TagReadRepository;
 import com.certimaster.learning.adapter.web.mapper.TagMapper;
 import com.certimaster.learning.adapter.web.response.TagResponse;
 import com.certimaster.learning.domain.entity.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +20,6 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class TagQueryService {
 
-    private static final Logger log = LoggerFactory.getLogger(TagQueryService.class);
 
     private static final String TAG = "Tag";
 
@@ -39,8 +36,6 @@ public class TagQueryService {
     }
 
     public PageResponse<TagResponse> search(SearchTagsQuery query) {
-        log.debug("Searching tags with criteria: {}", query);
-
         Sort sort = createSort(query.sortBy(), query.sortDirection());
         Pageable pageable = PageRequest.of(query.page(), query.size(), sort);
 
@@ -50,24 +45,18 @@ public class TagQueryService {
     }
 
     public List<TagResponse> getAll() {
-        log.debug("Getting all tags");
-
         return tagRepository.findAllActive().stream()
                 .map(tagMapper::toResponse)
                 .toList();
     }
 
     public TagResponse getById(GetTagByIdQuery query) {
-        log.debug("Getting tag by id: {}", query.id());
-
         Tag tag = tagRepository.findActiveById(query.id())
                 .orElseThrow(() -> ResourceNotFoundException.byId(TAG, query.id()));
         return tagMapper.toResponse(tag);
     }
 
     public List<TagResponse> getByQuestion(GetTagsByQuestionQuery query) {
-        log.debug("Getting tags by question id: {}", query.questionId());
-
         List<Tag> tags = questionTagRepository.findTagsByQuestionId(query.questionId());
         return tags.stream()
                 .map(tagMapper::toResponse)

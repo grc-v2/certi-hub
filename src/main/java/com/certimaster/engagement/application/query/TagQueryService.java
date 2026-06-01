@@ -15,8 +15,6 @@ import com.certimaster.engagement.adapter.web.response.TagResponse;
 import com.certimaster.engagement.domain.entity.PostTag;
 import com.certimaster.engagement.adapter.web.mapper.TagMapper;
 import com.certimaster.engagement.adapter.persistence.PostTagReadRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +29,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class TagQueryService {
 
-    private static final Logger log = LoggerFactory.getLogger(TagQueryService.class);
 
     private final PostTagReadRepository tagRepository;
     private final PostReadRepository postRepository;
@@ -49,8 +46,6 @@ public class TagQueryService {
     }
 
     public PageResponse<TagResponse> search(SearchTagsQuery query) {
-        log.debug("Searching tags with keyword: {}", query.keyword());
-
         Sort sort = createSort(query.sortBy(), query.sortDirection());
         Pageable pageable = PageRequest.of(query.page(), query.size(), sort);
         Page<PostTag> page = tagRepository.search(query.keyword(), pageable);
@@ -59,26 +54,21 @@ public class TagQueryService {
     }
 
     public TagResponse getTagById(GetTagByIdQuery query) {
-        log.debug("Getting tag by id: {}", query.id());
         PostTag tag = findTagById(query.id());
         return buildTagResponse(tag);
     }
 
     public TagResponse getTagBySlug(GetTagBySlugQuery query) {
-        log.debug("Getting tag by slug: {}", query.slug());
         PostTag tag = tagRepository.findBySlug(query.slug())
                 .orElseThrow(() -> ResourceNotFoundException.byField("Tag", "slug", query.slug()));
         return buildTagResponse(tag);
     }
 
     public List<TagResponse> getAllTags() {
-        log.debug("Getting all tags with post counts");
         return getTagsWithCounts();
     }
 
     public List<TagResponse> getTagsWithCounts() {
-        log.debug("Getting all tags with post counts");
-
         List<Object[]> results = tagRepository.findAllWithPostCount();
 
         return results.stream()
@@ -93,8 +83,6 @@ public class TagQueryService {
     }
 
     public PageResponse<PostResponse> getPostsByTag(GetPostsByTagQuery query) {
-        log.debug("Getting posts by tag slug: {}", query.tagSlug());
-
         if (!tagRepository.existsBySlug(query.tagSlug())) {
             throw ResourceNotFoundException.byField("Tag", "slug", query.tagSlug());
         }

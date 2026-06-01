@@ -103,8 +103,6 @@ public class AuthController {
             @RequestParam(required = false) String error,
             HttpServletResponse response
     ) {
-        log.debug("OAuth callback from provider: {}, has_code: {}, has_error: {}", provider, code != null, error != null);
-
         if (error != null) {
             log.warn("OAuth denied/error from provider {}: {}", provider, error);
             URI errorRedirect = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth/callback")

@@ -13,8 +13,6 @@ import com.certimaster.learning.domain.service.ExamSessionQuestionInitializer;
 import com.certimaster.learning.domain.service.QuestionSelectionService;
 import com.certimaster.learning.adapter.web.response.QuestionResponse;
 import com.certimaster.learning.domain.entity.Question;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +26,6 @@ import static com.certimaster.learning.domain.service.ExamSessionGuard.STATUS_IN
 @Component
 class StartExamHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(StartExamHandler.class);
 
     private final ExamWriteRepository examRepository;
     private final UserExamSessionRepository userExamSessionRepository;
@@ -50,8 +47,6 @@ class StartExamHandler {
 
     @Transactional
     ExamSessionResponse handle(StartExamCommand command) {
-        log.info("Starting exam {} for user {} with mode {}", command.examId(), command.userId(), command.mode());
-
         validateConcurrentSessions(command.userId());
 
         userExamSessionRepository.findByUserIdAndExam_IdAndStatus(command.userId(), command.examId(), STATUS_IN_PROGRESS)
@@ -90,8 +85,6 @@ class StartExamHandler {
                 .build();
 
         userExamSessionRepository.save(session);
-        log.info("Session {} created for user {} exam {}", session.getId(), command.userId(), command.examId());
-
         List<UserAnswer> savedAnswers = questionInitializer.createUserAnswers(session, questions);
         List<QuestionResponse> questionResponses = questionInitializer.buildOrderedQuestionResponses(questions, savedAnswers);
 

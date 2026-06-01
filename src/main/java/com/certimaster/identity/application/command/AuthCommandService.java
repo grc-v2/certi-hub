@@ -324,7 +324,6 @@ public class AuthCommandService {
             String jti = jwtProvider.getJtiFromToken(token);
             long remainingTtl = (jwtProvider.getExpirationFromToken(token).getTime() - System.currentTimeMillis()) / 1000;
             tokenBlacklistService.blacklistToken(jti, remainingTtl);
-            log.debug("Access token blacklisted: jti={} ttl={}s", jti, remainingTtl);
         } catch (Exception e) {
             log.warn("Failed to blacklist access token: {}", e.getMessage());
         }

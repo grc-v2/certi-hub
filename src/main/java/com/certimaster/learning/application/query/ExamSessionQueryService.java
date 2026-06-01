@@ -15,8 +15,6 @@ import com.certimaster.learning.domain.entity.UserAnswer;
 import com.certimaster.learning.domain.entity.UserExamSession;
 import com.certimaster.learning.adapter.persistence.UserAnswerRepository;
 import com.certimaster.learning.adapter.persistence.UserExamSessionRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +36,6 @@ import static com.certimaster.learning.domain.service.ExamSessionGuard.STATUS_IN
 @Transactional(readOnly = true)
 public class ExamSessionQueryService {
 
-    private static final Logger log = LoggerFactory.getLogger(ExamSessionQueryService.class);
 
     private final UserExamSessionRepository userExamSessionRepository;
     private final UserAnswerRepository userAnswerRepository;
@@ -53,15 +50,12 @@ public class ExamSessionQueryService {
     }
 
     public UserExamSessionResponse getSession(Long sessionId, Long userId) {
-        log.debug("Getting session {} for user {}", sessionId, userId);
         UserExamSession session = userExamSessionRepository.findByIdAndUserId(sessionId, userId)
                 .orElseThrow(() -> ResourceNotFoundException.byId(SESSION_RESOURCE, sessionId));
         return mapToUserExamSessionResponse(session);
     }
 
     public ResumeSessionResponse resumeSession(Long sessionId, Long userId) {
-        log.debug("Resuming session {} for user {}", sessionId, userId);
-
         UserExamSession session = userExamSessionRepository.findByIdAndUserId(sessionId, userId)
                 .orElseThrow(() -> ResourceNotFoundException.byId(SESSION_RESOURCE, sessionId));
 
@@ -103,7 +97,6 @@ public class ExamSessionQueryService {
     }
 
     public List<UserExamSessionResponse> getActiveSessions(Long userId) {
-        log.debug("Getting active sessions for user {}", userId);
         List<UserExamSession> sessions = userExamSessionRepository.findByUserIdAndStatus(userId, STATUS_IN_PROGRESS);
         return sessions.stream()
                 .map(this::mapToUserExamSessionResponse)
@@ -111,8 +104,6 @@ public class ExamSessionQueryService {
     }
 
     public ReviewSessionResponse reviewSession(Long sessionId, Long userId) {
-        log.debug("Reviewing session {} for user {}", sessionId, userId);
-
         UserExamSession session = userExamSessionRepository.findByIdAndUserId(sessionId, userId)
                 .orElseThrow(() -> ResourceNotFoundException.byId(SESSION_RESOURCE, sessionId));
 

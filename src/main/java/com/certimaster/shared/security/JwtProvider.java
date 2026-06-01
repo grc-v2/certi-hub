@@ -51,7 +51,6 @@ public class JwtProvider {
                 // Load keys from configuration
                 this.privateKey = loadPrivateKey(jwtProperties.getPrivateKey());
                 this.publicKey = loadPublicKey(jwtProperties.getPublicKey());
-                log.info("JWT Provider initialized with configured RSA keys using RS256 algorithm");
             } else {
                 // Generate new key pair for development/testing
                 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");

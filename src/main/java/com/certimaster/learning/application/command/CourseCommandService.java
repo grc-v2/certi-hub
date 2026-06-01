@@ -14,8 +14,6 @@ import com.certimaster.learning.domain.entity.CourseLessonProgress;
 import com.certimaster.shared.exception.ForbiddenException;
 import com.certimaster.shared.exception.ResourceNotFoundException;
 import com.certimaster.shared.exception.UnauthorizedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +25,6 @@ import java.time.LocalDateTime;
 @Transactional
 public class CourseCommandService {
 
-    private static final Logger log = LoggerFactory.getLogger(CourseCommandService.class);
     private static final String COURSE = "Course";
     private static final String COURSE_LESSON = "Course lesson";
     private static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
@@ -53,8 +50,6 @@ public class CourseCommandService {
 
     public CourseEnrollmentResponse enroll(EnrollCourseCommand command) {
         requireUser(command.userId());
-        log.debug("Enrolling user {} in course {}", command.userId(), command.courseId());
-
         CourseEnrollment existing = enrollmentRepository
                 .findByUserIdAndCourseIdWithCourse(command.userId(), command.courseId())
                 .orElse(null);
@@ -78,14 +73,11 @@ public class CourseCommandService {
         courseRepository.save(course);
         CourseEnrollment saved = enrollmentRepository.save(enrollment);
 
-        log.info("Created course enrollment {} for user {} course {}", saved.getId(), command.userId(), command.courseId());
         return courseMapper.toEnrollmentResponse(saved, totalLessons(command.courseId()));
     }
 
     public CompleteLessonResponse completeLesson(CompleteCourseLessonCommand command) {
         requireUser(command.userId());
-        log.debug("Completing lesson {} in course {} for user {}", command.lessonId(), command.courseId(), command.userId());
-
         CourseEnrollment enrollment = enrollmentRepository
                 .findByUserIdAndCourseIdWithCourse(command.userId(), command.courseId())
                 .orElseThrow(() -> new ForbiddenException("You must enroll in this course before completing lessons"));

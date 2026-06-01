@@ -18,8 +18,6 @@ import com.certimaster.learning.adapter.persistence.TopicPerformanceRepository;
 import com.certimaster.learning.domain.service.ExamResultReferenceDataService;
 import com.certimaster.learning.domain.service.ResultAuthorizationService;
 import com.certimaster.learning.domain.service.ResultInsightService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +30,6 @@ import java.util.Map;
 @Component
 class GetResultDetailHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GetResultDetailHandler.class);
     private static final int FALLBACK_PASSING_SCORE = 70;
 
     private final ExamResultQueryRepository examResultQueryRepository;
@@ -58,8 +55,6 @@ class GetResultDetailHandler {
 
     @Transactional(readOnly = true)
     ResultDetailResponse handle(GetResultDetailQuery query) {
-        log.debug("Getting result detail for resultId={}, currentUserId={}", query.resultId(), query.currentUserId());
-
         ExamResult examResult = examResultQueryRepository.findById(query.resultId())
                 .orElseThrow(() -> ResourceNotFoundException.byId("ExamResult", query.resultId()));
 

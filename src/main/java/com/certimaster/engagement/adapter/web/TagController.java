@@ -13,8 +13,6 @@ import com.certimaster.engagement.adapter.web.response.TagResponse;
 import com.certimaster.engagement.application.command.TagCommandService;
 import com.certimaster.engagement.application.query.TagQueryService;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/tags")
 public class TagController {
 
-    private static final Logger log = LoggerFactory.getLogger(TagController.class);
 
     private final TagCommandService tagCommandService;
     private final TagQueryService tagQueryService;
@@ -50,8 +47,6 @@ public class TagController {
             @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "ASC") String sortDirection
     ) {
-        log.debug("Search tags - keyword: {}", keyword);
-
         SearchTagsQuery query = new SearchTagsQuery(keyword, page, size, sortBy, sortDirection);
 
         return ResponseEntity.ok(tagQueryService.search(query));
@@ -59,7 +54,6 @@ public class TagController {
 
     @GetMapping("/{slug}")
     public ResponseEntity<TagResponse> getTagBySlug(@PathVariable String slug) {
-        log.debug("Get tag by slug: {}", slug);
         return ResponseEntity.ok(tagQueryService.getTagBySlug(new GetTagBySlugQuery(slug)));
     }
 
@@ -69,14 +63,12 @@ public class TagController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size
     ) {
-        log.debug("Get posts by tag slug: {}", slug);
         return ResponseEntity.ok(tagQueryService.getPostsByTag(new GetPostsByTagQuery(slug, page, size)));
     }
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TagResponse> createTag(@Valid @RequestBody TagRequest request) {
-        log.debug("Create tag with name: {}", request.getName());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(tagCommandService.createTag(new CreateTagCommand(request.getName())));
     }
@@ -87,14 +79,12 @@ public class TagController {
             @PathVariable Long id,
             @Valid @RequestBody TagRequest request
     ) {
-        log.debug("Update tag with id: {}", id);
         return ResponseEntity.ok(tagCommandService.updateTag(new UpdateTagCommand(id, request.getName())));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('BLOG_ADMIN') or hasRole('ADMIN')")
     public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
-        log.debug("Delete tag with id: {}", id);
         tagCommandService.deleteTag(new DeleteTagCommand(id));
         return ResponseEntity.noContent().build();
     }

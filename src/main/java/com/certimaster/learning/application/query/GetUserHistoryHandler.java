@@ -12,8 +12,6 @@ import com.certimaster.learning.domain.entity.ExamResult;
 import com.certimaster.learning.adapter.persistence.ExamResultQueryRepository;
 import com.certimaster.learning.domain.service.ExamResultReferenceDataService;
 import com.certimaster.learning.domain.service.ResultAuthorizationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +32,6 @@ import java.util.stream.Collectors;
 @Component
 class GetUserHistoryHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GetUserHistoryHandler.class);
 
     private final ExamResultQueryRepository examResultQueryRepository;
     private final ExamResultReferenceDataService referenceDataService;
@@ -50,8 +47,6 @@ class GetUserHistoryHandler {
 
     @Transactional(readOnly = true)
     UserHistoryResponse handle(GetUserHistoryQuery query) {
-        log.debug("Getting user history for userId={}, currentUserId={}", query.userId(), query.currentUserId());
-
         authorizationService.validateUserAuthorization(query.userId(), query.currentUserId());
 
         int page = query.page() != null ? query.page() : 0;

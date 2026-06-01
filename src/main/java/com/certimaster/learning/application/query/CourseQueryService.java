@@ -15,8 +15,6 @@ import com.certimaster.shared.dto.PageResponse;
 import com.certimaster.shared.exception.ForbiddenException;
 import com.certimaster.shared.exception.ResourceNotFoundException;
 import com.certimaster.shared.exception.UnauthorizedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +30,6 @@ import java.util.Set;
 @Transactional(readOnly = true)
 public class CourseQueryService {
 
-    private static final Logger log = LoggerFactory.getLogger(CourseQueryService.class);
     private static final String COURSE = "Course";
     private static final String COURSE_LESSON = "Course lesson";
 
@@ -55,8 +52,6 @@ public class CourseQueryService {
     }
 
     public PageResponse<CourseResponse> search(SearchCoursesQuery query) {
-        log.debug("Searching published courses with criteria: {}", query);
-
         Pageable pageable = PageRequest.of(query.page(), query.size(), createSort(query.sortBy(), query.sortDirection()));
         Page<Course> page = courseRepository.searchPublished(query.certificationId(), query.search(), pageable);
 
@@ -67,8 +62,6 @@ public class CourseQueryService {
     }
 
     public CourseResponse getById(GetCourseByIdQuery query) {
-        log.debug("Getting course {} for user {}", query.courseId(), query.userId());
-
         Course course = courseRepository.findPublishedDetailById(query.courseId())
                 .orElseThrow(() -> ResourceNotFoundException.byId(COURSE, query.courseId()));
 
@@ -81,8 +74,6 @@ public class CourseQueryService {
 
     public List<CourseEnrollmentResponse> getMyEnrollments(GetMyCourseEnrollmentsQuery query) {
         requireUser(query.userId());
-        log.debug("Getting course enrollments for user {}", query.userId());
-
         return enrollmentRepository.findByUserIdWithCourse(query.userId()).stream()
                 .map(enrollment -> courseMapper.toEnrollmentResponse(
                         enrollment,
@@ -93,8 +84,6 @@ public class CourseQueryService {
 
     public CourseLessonDetailResponse getLesson(GetCourseLessonQuery query) {
         requireUser(query.userId());
-        log.debug("Getting course lesson {} in course {} for user {}", query.lessonId(), query.courseId(), query.userId());
-
         CourseEnrollment enrollment = enrollmentRepository.findByUserIdAndCourseIdWithCourse(query.userId(), query.courseId())
                 .orElseThrow(() -> new ForbiddenException("You must enroll in this course before accessing lessons"));
 

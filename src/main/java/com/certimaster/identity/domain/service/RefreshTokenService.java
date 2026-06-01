@@ -6,8 +6,6 @@ import com.certimaster.identity.domain.entity.RefreshToken;
 import com.certimaster.identity.domain.entity.User;
 import com.certimaster.identity.adapter.persistence.RefreshTokenRepository;
 import com.certimaster.identity.adapter.persistence.UserWriteRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +14,6 @@ import java.time.LocalDateTime;
 @Service
 public class RefreshTokenService {
 
-    private static final Logger log = LoggerFactory.getLogger(RefreshTokenService.class);
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserWriteRepository userRepository;

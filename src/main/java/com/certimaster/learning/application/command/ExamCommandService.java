@@ -11,8 +11,6 @@ import com.certimaster.learning.adapter.web.response.ExamResponse;
 import com.certimaster.learning.domain.entity.Exam;
 import com.certimaster.learning.adapter.web.mapper.ExamMapper;
 import com.certimaster.learning.adapter.persistence.ExamWriteRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ExamCommandService {
 
-    private static final Logger log = LoggerFactory.getLogger(ExamCommandService.class);
 
     private static final String EXAM = "Exam";
     private static final String CERTIFICATION = "Certification";
@@ -39,8 +36,6 @@ public class ExamCommandService {
     }
 
     public ExamResponse create(CreateExamCommand command) {
-        log.debug("Creating exam with title: {}", command.title());
-
         Certification certification = findCertificationOrThrow(command.certificationId());
         validateTitleUnique(command.title(), command.certificationId(), null);
 
@@ -51,14 +46,10 @@ public class ExamCommandService {
         }
 
         Exam saved = examRepository.save(exam);
-        log.info("Created exam with id: {}", saved.getId());
-
         return examMapper.toResponse(saved);
     }
 
     public ExamResponse update(UpdateExamCommand command) {
-        log.debug("Updating exam with id: {}", command.id());
-
         Exam exam = findActiveOrThrow(command.id());
 
         if (!exam.getCertification().getId().equals(command.certificationId())) {
@@ -70,19 +61,14 @@ public class ExamCommandService {
         examMapper.updateEntity(exam, command);
 
         Exam saved = examRepository.save(exam);
-        log.info("Updated exam with id: {}", saved.getId());
-
         return examMapper.toResponse(saved);
     }
 
     public void delete(DeleteExamCommand command) {
-        log.debug("Soft deleting exam with id: {}", command.id());
-
         Exam exam = findActiveOrThrow(command.id());
         exam.setStatus(DELETED_STATUS);
         examRepository.save(exam);
 
-        log.info("Soft deleted exam with id: {}", command.id());
     }
 
     private Exam findActiveOrThrow(Long id) {

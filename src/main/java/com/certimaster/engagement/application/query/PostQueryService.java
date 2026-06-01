@@ -13,8 +13,6 @@ import com.certimaster.engagement.domain.entity.Post;
 import com.certimaster.engagement.domain.entity.PostStatus;
 import com.certimaster.engagement.domain.service.MarkdownService;
 import com.certimaster.engagement.adapter.web.response.TagResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +29,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class PostQueryService {
 
-    private static final Logger log = LoggerFactory.getLogger(PostQueryService.class);
 
     private final PostReadRepository postRepository;
     private final PostMapper postMapper;
@@ -72,7 +69,6 @@ public class PostQueryService {
 
     public PageResponse<PostResponse> getPostsByDomain(GetPostsByDomainQuery query) {
         // Certification mapping removed - return empty
-        log.debug("getPostsByDomain called but cert mapping is removed - returning empty");
         return PageResponse.of(Page.empty());
     }
 

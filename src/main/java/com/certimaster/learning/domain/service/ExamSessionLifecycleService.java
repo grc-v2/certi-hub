@@ -42,11 +42,9 @@ public class ExamSessionLifecycleService {
         if (expired.isEmpty()) {
             return;
         }
-        log.info("Auto-expiring {} timed-out sessions", expired.size());
         for (UserExamSession session : expired) {
             try {
                 timeoutSessionHandler.expire(session.getId());
-                log.info("Auto-expired session {}", session.getId());
             } catch (Exception ex) {
                 log.error("Failed to auto-expire session {}", session.getId(), ex);
             }

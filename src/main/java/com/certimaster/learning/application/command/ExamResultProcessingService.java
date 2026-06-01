@@ -43,9 +43,6 @@ public class ExamResultProcessingService {
 
     @Transactional
     public ExamResultResponse processCompletedExam(ExamCompletedEvent event) {
-        log.debug("Processing completed exam for session {} user {} exam {}",
-                event.getSessionId(), event.getUserId(), event.getExamId());
-
         try {
             var existingResult = examResultRepository.findBySessionId(event.getSessionId());
             if (existingResult.isPresent()) {
@@ -93,8 +90,6 @@ public class ExamResultProcessingService {
                     .build();
 
             examResult = examResultRepository.save(examResult);
-            log.info("Created ExamResult {} for session {}", examResult.getId(), event.getSessionId());
-
             List<ExamResultResponse.TopicPerformanceData> topicPerformanceDataList =
                     calculateAndSaveTopicPerformances(examResult, event.getAnswers());
 
@@ -183,7 +178,6 @@ public class ExamResultProcessingService {
         }
 
         topicPerformanceRepository.saveAll(topicPerformanceEntities);
-        log.debug("Created {} TopicPerformance records for result {}", topicPerformanceDataList.size(), examResult.getId());
         return topicPerformanceDataList;
     }
 
@@ -230,7 +224,6 @@ public class ExamResultProcessingService {
         }
 
         questionResultRepository.saveAll(questionResultEntities);
-        log.debug("Created {} QuestionResult records for result {}", questionResultDataList.size(), examResult.getId());
         return questionResultDataList;
     }
 

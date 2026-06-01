@@ -11,8 +11,6 @@ import com.certimaster.learning.adapter.persistence.UserExamSessionRepository;
 import com.certimaster.learning.domain.service.ExamSessionGuard;
 import com.certimaster.learning.domain.service.GradingService;
 import com.certimaster.learning.domain.entity.Question;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +22,6 @@ import static com.certimaster.learning.domain.service.ExamSessionGuard.MODE_PRAC
 @Component
 class SubmitAnswerHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(SubmitAnswerHandler.class);
 
     private final UserAnswerRepository userAnswerRepository;
     private final UserExamSessionRepository userExamSessionRepository;
@@ -43,8 +40,6 @@ class SubmitAnswerHandler {
 
     @Transactional
     AnswerFeedbackResponse handle(SubmitAnswerCommand command) {
-        log.debug("Submitting answer for session {} question {}", command.sessionId(), command.questionId());
-
         UserExamSession session = sessionGuard.findSessionOrThrow(command.sessionId());
         sessionGuard.validateSessionOwner(session, command.userId());
         sessionGuard.validateSessionActive(session);

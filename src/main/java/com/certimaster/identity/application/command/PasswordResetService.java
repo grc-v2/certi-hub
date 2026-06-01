@@ -46,7 +46,6 @@ public class PasswordResetService {
     public void requestReset(RequestPasswordResetCommand command) {
         Optional<User> userOpt = userRepository.findByEmailWithRoles(command.email());
         if (userOpt.isEmpty()) {
-            log.info("Password reset requested for unknown email (no-op): {}", command.email());
             return;
         }
         User user = userOpt.get();
@@ -60,7 +59,6 @@ public class PasswordResetService {
         event.setExpiresAt(LocalDateTime.now().plus(ttl));
         applicationEvents.publishEvent(event);
 
-        log.info("Password reset token issued for userId={}", user.getId());
     }
 
     @Transactional
@@ -85,6 +83,5 @@ public class PasswordResetService {
         userRepository.save(user);
 
         redisTemplate.delete(key);
-        log.info("Password reset completed for userId={}", userId);
     }
 }

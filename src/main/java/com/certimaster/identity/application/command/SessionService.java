@@ -58,7 +58,6 @@ public class SessionService {
             redisTemplate.opsForSet().add(userSessionsKey, sessionToken);
             redisTemplate.expire(userSessionsKey, ttl, TimeUnit.SECONDS);
 
-            log.debug("Session created: userId={}, sessionId={}", userId, sessionToken);
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize session: userId={}", userId, e);
             throw new RuntimeException("Failed to create session", e);
@@ -95,7 +94,6 @@ public class SessionService {
     public void deleteSession(Long userId, String sessionId) {
         redisTemplate.delete(SESSION_KEY_PREFIX + userId + ":" + sessionId);
         redisTemplate.opsForSet().remove(USER_SESSIONS_KEY_PREFIX + userId, sessionId);
-        log.debug("Session deleted: userId={}, sessionId={}", userId, sessionId);
     }
 
     @Transactional
@@ -110,7 +108,6 @@ public class SessionService {
 
     @Transactional
     public int forceLogoutAllSessions(Long userId, String logoutReason) {
-        log.info("Force logging out all sessions: userId={}, reason={}", userId, logoutReason);
         return deleteAllUserSessions(userId);
     }
 
@@ -127,7 +124,6 @@ public class SessionService {
                 removed++;
             }
         }
-        if (removed > 0) log.info("Cleaned {} dangling session refs: userId={}", removed, userId);
         return removed;
     }
 

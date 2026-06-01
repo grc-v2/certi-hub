@@ -44,7 +44,6 @@ public class AvatarStorageService  {
             boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
             if (!exists) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-                log.info("Created MinIO bucket: {}", bucketName);
             }
         } catch (Exception e) {
             log.error("Failed to initialize MinIO bucket: {}", bucketName, e);
@@ -66,7 +65,6 @@ public class AvatarStorageService  {
                     .build());
 
             String avatarUrl = endpoint + "/" + bucketName + "/" + objectName;
-            log.info("Avatar uploaded for userId={}, url={}", userId, avatarUrl);
             return avatarUrl;
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload avatar", e);
@@ -79,7 +77,6 @@ public class AvatarStorageService  {
                     .bucket(bucketName)
                     .object(objectName)
                     .build());
-            log.info("Avatar deleted: {}", objectName);
         } catch (Exception e) {
             log.warn("Failed to delete avatar: {}", objectName, e);
         }

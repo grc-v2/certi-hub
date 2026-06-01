@@ -7,8 +7,6 @@ import com.certimaster.engagement.domain.entity.Post;
 import com.certimaster.engagement.adapter.persistence.BookmarkRepository;
 import com.certimaster.engagement.adapter.persistence.PostWriteRepository;
 import com.certimaster.engagement.adapter.web.mapper.BookmarkMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +16,6 @@ import java.util.Optional;
 @Transactional
 public class BookmarkCommandService {
 
-    private static final Logger log = LoggerFactory.getLogger(BookmarkCommandService.class);
 
     private final BookmarkRepository bookmarkRepository;
     private final PostWriteRepository postRepository;
@@ -52,7 +49,6 @@ public class BookmarkCommandService {
         Bookmark saved = bookmarkRepository.save(bookmark);
         postRepository.updateBookmarkCount(command.postId(), 1);
 
-        log.info("User {} bookmarked post {}", command.userId(), command.postId());
         return bookmarkMapper.toResponse(saved);
     }
 

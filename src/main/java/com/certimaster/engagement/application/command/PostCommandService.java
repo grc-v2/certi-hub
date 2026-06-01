@@ -16,8 +16,6 @@ import com.certimaster.engagement.domain.service.PostContentProcessor;
 import com.certimaster.engagement.application.command.AssignTagsToPostCommand;
 import com.certimaster.engagement.application.command.RemoveAllTagsFromPostCommand;
 import com.certimaster.engagement.application.command.TagCommandService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +29,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class PostCommandService {
 
-    private static final Logger log = LoggerFactory.getLogger(PostCommandService.class);
 
     private final PostWriteRepository postRepository;
     private final PostMapper postMapper;
@@ -55,8 +52,6 @@ public class PostCommandService {
     }
 
     public PostResponse createPost(CreatePostCommand command) {
-        log.debug("Creating post with title: {} for author: {}", command.title(), command.authorId());
-
         Post post = postMapper.toEntity(command);
         post.setAuthorId(command.authorId());
         post.setSlug(slugService.generateUniqueSlug(command.title()));
@@ -68,13 +63,10 @@ public class PostCommandService {
 
         Post saved = postRepository.save(post);
         synchronizeTags(saved.getId(), command.tagNames());
-        log.info("Created post id: {} slug: {}", saved.getId(), saved.getSlug());
         return postMapper.toResponse(saved);
     }
 
     public PostResponse updatePost(UpdatePostCommand command) {
-        log.debug("Updating post: {} by user: {}", command.id(), command.userId());
-
         Post post = findPostById(command.id());
         checkPostOwnership(post, command.userId());
 
@@ -84,13 +76,10 @@ public class PostCommandService {
 
         Post saved = postRepository.save(post);
         synchronizeTags(saved.getId(), command.tagNames());
-        log.info("Updated post: {}", saved.getId());
         return postMapper.toResponse(saved);
     }
 
     public PostResponse publishPost(PublishPostCommand command) {
-        log.debug("Publishing post: {} by user: {}", command.id(), command.userId());
-
         Post post = findPostById(command.id());
         checkPostOwnership(post, command.userId());
 
@@ -107,13 +96,10 @@ public class PostCommandService {
 
         Post saved = postRepository.save(post);
         applicationEvents.publishEvent(toPostPublishedEvent(saved));
-        log.info("Published post: {}", saved.getId());
         return postMapper.toResponse(saved);
     }
 
     public PostResponse schedulePost(SchedulePostCommand command) {
-        log.debug("Scheduling post: {} for: {}", command.id(), command.scheduledAt());
-
         Post post = findPostById(command.id());
         checkPostOwnership(post, command.userId());
 
@@ -128,36 +114,27 @@ public class PostCommandService {
         post.setScheduledPublishAt(command.scheduledAt());
 
         Post saved = postRepository.save(post);
-        log.info("Scheduled post: {} for: {}", saved.getId(), command.scheduledAt());
         return postMapper.toResponse(saved);
     }
 
     public PostResponse archivePost(ArchivePostCommand command) {
-        log.debug("Archiving post: {} by user: {}", command.id(), command.userId());
-
         Post post = findPostById(command.id());
         checkPostOwnership(post, command.userId());
 
         post.setStatus(PostStatus.ARCHIVED);
 
         Post saved = postRepository.save(post);
-        log.info("Archived post: {}", saved.getId());
         return postMapper.toResponse(saved);
     }
 
     public void deletePost(DeletePostCommand command) {
-        log.debug("Deleting post: {} by user: {}", command.id(), command.userId());
-
         Post post = findPostById(command.id());
         checkPostOwnership(post, command.userId());
 
         postRepository.delete(post);
-        log.info("Deleted post: {}", command.id());
     }
 
     public PostResponse submitForReview(SubmitPostForReviewCommand command) {
-        log.debug("Submitting post: {} for review", command.id());
-
         Post post = findPostById(command.id());
         checkPostOwnership(post, command.userId());
 
@@ -168,7 +145,6 @@ public class PostCommandService {
         post.setStatus(PostStatus.IN_REVIEW);
 
         Post saved = postRepository.save(post);
-        log.info("Post {} submitted for review", saved.getId());
         return postMapper.toResponse(saved);
     }
 
