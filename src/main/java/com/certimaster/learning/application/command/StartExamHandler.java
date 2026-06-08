@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.certimaster.learning.domain.service.ExamSessionGuard.EXAM_RESOURCE;
+import static com.certimaster.learning.domain.service.ExamSessionGuard.MODE_EXAM;
 import static com.certimaster.learning.domain.service.ExamSessionGuard.STATUS_IN_PROGRESS;
 
 @Component
@@ -59,7 +60,9 @@ class StartExamHandler {
         Exam exam = examRepository.findActiveById(command.examId())
                 .orElseThrow(() -> ResourceNotFoundException.byId(EXAM_RESOURCE, command.examId()));
 
-        List<Question> questions = questionSelectionService.selectQuestionsForExam(exam);
+        // Server is the source of truth: starting via this endpoint is always an EXAM session.
+        // Client-supplied mode is ignored to prevent leaking feedback during a real exam.
+        List<Question> questions = questionSelectionService.selectQuestionsForExam(exam, true);
         if (questions.isEmpty()) {
             throw BusinessException.invalidInput("This exam has no questions");
         }
@@ -72,7 +75,7 @@ class StartExamHandler {
                 .certification(exam.getCertification())
                 .startTime(startTime)
                 .status(STATUS_IN_PROGRESS)
-                .mode(command.mode())
+                .mode(MODE_EXAM)
                 .examTitle(exam.getTitle())
                 .totalQuestions(questions.size())
                 .durationMinutes(exam.getDurationMinutes())
@@ -88,15 +91,20 @@ class StartExamHandler {
         List<UserAnswer> savedAnswers = questionInitializer.createUserAnswers(session, questions);
         List<QuestionResponse> questionResponses = questionInitializer.buildOrderedQuestionResponses(questions, savedAnswers);
 
+        LocalDateTime deadline = exam.getDurationMinutes() != null
+                ? startTime.plusMinutes(exam.getDurationMinutes())
+                : null;
+
         return ExamSessionResponse.builder()
                 .id(session.getId())
                 .examId(exam.getId())
                 .examTitle(exam.getTitle())
                 .certificationId(exam.getCertification().getId())
                 .certificationName(exam.getCertification().getName())
-                .mode(command.mode())
+                .mode(MODE_EXAM)
                 .status(STATUS_IN_PROGRESS)
                 .startTime(startTime)
+                .deadline(deadline)
                 .durationMinutes(exam.getDurationMinutes())
                 .passingScore(exam.getPassingScore())
                 .totalQuestions(questions.size())

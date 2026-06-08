@@ -12,6 +12,7 @@ public class UserExamSessionResponse extends BaseResponse {
     private String certificationName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private LocalDateTime deadline;
     private String status;
     private String mode;
     private String examTitle;
@@ -100,6 +101,14 @@ public class UserExamSessionResponse extends BaseResponse {
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
+    }
+
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
     }
 
     public String getStatus() {
@@ -206,6 +215,7 @@ public class UserExamSessionResponse extends BaseResponse {
         private String certificationName;
         private LocalDateTime startTime;
         private LocalDateTime endTime;
+        private LocalDateTime deadline;
         private String status;
         private String mode;
         private String examTitle;
@@ -229,6 +239,7 @@ public class UserExamSessionResponse extends BaseResponse {
         public Builder certificationName(String v) { this.certificationName = v; return this; }
         public Builder startTime(LocalDateTime v) { this.startTime = v; return this; }
         public Builder endTime(LocalDateTime v) { this.endTime = v; return this; }
+        public Builder deadline(LocalDateTime v) { this.deadline = v; return this; }
         public Builder status(String v) { this.status = v; return this; }
         public Builder mode(String v) { this.mode = v; return this; }
         public Builder examTitle(String v) { this.examTitle = v; return this; }
@@ -254,6 +265,7 @@ public class UserExamSessionResponse extends BaseResponse {
             o.certificationName = this.certificationName;
             o.startTime = this.startTime;
             o.endTime = this.endTime;
+            o.deadline = this.deadline;
             o.status = this.status;
             o.mode = this.mode;
             o.examTitle = this.examTitle;

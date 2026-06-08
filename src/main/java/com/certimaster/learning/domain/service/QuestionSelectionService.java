@@ -31,10 +31,18 @@ public class QuestionSelectionService  {
     }
 
     public List<Question> selectQuestionsForExam(Exam exam) {
-        return exam.getExamQuestions().stream()
+        return selectQuestionsForExam(exam, false);
+    }
+
+    public List<Question> selectQuestionsForExam(Exam exam, boolean shuffle) {
+        List<Question> ordered = exam.getExamQuestions().stream()
                 .sorted(Comparator.comparing(ExamQuestion::getOrderIndex))
                 .map(ExamQuestion::getQuestion)
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
+        if (shuffle) {
+            Collections.shuffle(ordered);
+        }
+        return ordered;
     }
 
     public List<Question> selectQuestionsFromBank(QuestionBank bank, QuestionSelectionCriteria criteria) {

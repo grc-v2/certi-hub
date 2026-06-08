@@ -3,20 +3,20 @@ spring:
     name: certimaster
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:certi-master}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:certimaster}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT_MS:30000}
 
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-    show-sql: false
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -67,19 +67,23 @@ jwt:
   issuer: ${JWT_ISSUER:certimaster}
 
 auth:
+  cookie:
+    secure: ${AUTH_COOKIE_SECURE:false}
+    same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
+    domain: ${AUTH_COOKIE_DOMAIN:}
   oauth2:
     redirect-allowlist: ${AUTH_OAUTH2_REDIRECT_ALLOWLIST:http://localhost:3000,https://certimaster.com}
     callback-base-url: ${AUTH_OAUTH2_CALLBACK_BASE_URL:http://localhost:8080/api/v1/auth/oauth/callback}
     google:
-      client-id: ${AUTH_OAUTH2_GOOGLE_CLIENT_ID:}
-      client-secret: ${AUTH_OAUTH2_GOOGLE_CLIENT_SECRET:}
+      client-id: ${AUTH_OAUTH2_GOOGLE_CLIENT_ID:807716176451-t92m5cd4bvdcmrt86j7p63seojh4pst4.apps.googleusercontent.com}
+      client-secret: ${AUTH_OAUTH2_GOOGLE_CLIENT_SECRET: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}
       authorize-url: ${AUTH_OAUTH2_GOOGLE_AUTHORIZE_URL:https://accounts.google.com/o/oauth2/v2/auth}
       token-url: ${AUTH_OAUTH2_GOOGLE_TOKEN_URL:https://oauth2.googleapis.com/token}
       user-info-url: ${AUTH_OAUTH2_GOOGLE_USER_INFO_URL:https://openidconnect.googleapis.com/v1/userinfo}
       scope: ${AUTH_OAUTH2_GOOGLE_SCOPE:openid profile email}
     github:
-      client-id: ${AUTH_OAUTH2_GITHUB_CLIENT_ID:}
-      client-secret: ${AUTH_OAUTH2_GITHUB_CLIENT_SECRET:}
+      client-id: ${AUTH_OAUTH2_GITHUB_CLIENT_ID:Ov23lisKqOUQvBdv8Qf5}
+      client-secret: ${AUTH_OAUTH2_GITHUB_CLIENT_SECRET:24d76402c3a99ef972210c4bbe848819e0995b94}
       authorize-url: ${AUTH_OAUTH2_GITHUB_AUTHORIZE_URL:https://github.com/login/oauth/authorize}
       token-url: ${AUTH_OAUTH2_GITHUB_TOKEN_URL:https://github.com/login/oauth/access_token}
       user-info-url: ${AUTH_OAUTH2_GITHUB_USER_INFO_URL:https://api.github.com/user}
@@ -98,6 +102,7 @@ auth:
 
 minio:
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket:
@@ -113,11 +118,21 @@ api:
   version: v1
 
 app:
-  domain: certimaster
-  service: certimaster
+  domain: ${APP_DOMAIN:certimaster}
+  service: ${APP_SERVICE:certimaster}
   exception:
-    include-stack-trace: false
-    log-stack-trace: true
+    include-stack-trace: ${APP_EXCEPTION_INCLUDE_STACK_TRACE:false}
+    log-stack-trace: ${APP_EXCEPTION_LOG_STACK_TRACE:true}
+
+security:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,https://certimaster.com}
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-User-Id,X-Requested-With,Accept,Origin}
+    exposed-headers: ${CORS_EXPOSED_HEADERS:Authorization,X-User-Id}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+    max-age-seconds: ${CORS_MAX_AGE_SECONDS:3600}
 
 management:
   endpoints:
@@ -132,15 +147,26 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+  logging:
+    export:
+      otlp:
+        enabled: ${OTEL_LOGS_EXPORT_ENABLED:false}
   tracing:
+    export:
+      enabled: ${TRACING_EXPORT_ENABLED:${TRACING_ENABLED:false}}
+      otlp:
+        enabled: ${OTEL_TRACES_EXPORT_ENABLED:${TRACING_ENABLED:false}}
     sampling:
-      probability: 1.0
-  otlp:
+      probability: ${TRACING_SAMPLING_PROBABILITY:0.0}
+  opentelemetry:
     tracing:
-      endpoint: ${OTEL_ENDPOINT:http://localhost:4318/v1/traces}
+      export:
+        otlp:
+          endpoint: ${OTEL_TRACES_ENDPOINT:${OTEL_ENDPOINT:http://localhost:4318/v1/traces}}
 
 logging:
   level:
-    com.certimaster: DEBUG
-    org.springframework.security: WARN
-    org.hibernate.SQL: WARN
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.certimaster: ${LOG_LEVEL_CERTIMASTER:DEBUG}
+    org.springframework.security: ${LOG_LEVEL_SPRING_SECURITY:WARN}
+    org.hibernate.SQL: ${LOG_LEVEL_HIBERNATE_SQL:WARN}

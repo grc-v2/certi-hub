@@ -32,4 +32,17 @@ public interface CourseLessonRepository extends JpaRepository<CourseLesson, Long
     List<Long> findOrderedLessonIdsByCourseId(@Param("courseId") Long courseId);
 
     long countByModule_Course_Id(Long courseId);
+
+    @Query("""
+            SELECT l FROM CourseLesson l
+            JOIN FETCH l.module m
+            JOIN FETCH m.course c
+            WHERE l.id = :lessonId AND m.id = :moduleId AND c.id = :courseId
+            """)
+    Optional<CourseLesson> findByCourseModuleAndLessonId(@Param("courseId") Long courseId,
+                                                         @Param("moduleId") Long moduleId,
+                                                         @Param("lessonId") Long lessonId);
+
+    @Query("SELECT COALESCE(MAX(l.orderIndex), 0) FROM CourseLesson l WHERE l.module.id = :moduleId")
+    Integer findMaxOrderIndexByModuleId(@Param("moduleId") Long moduleId);
 }

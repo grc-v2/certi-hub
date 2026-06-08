@@ -16,6 +16,7 @@ public class ExamSessionResponse extends BaseResponse {
     private String status;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private LocalDateTime deadline;
     private Integer durationMinutes;
     private Integer passingScore;
     private Integer totalQuestions;
@@ -30,6 +31,7 @@ public class ExamSessionResponse extends BaseResponse {
                                 Long examId, String examTitle, Long certificationId,
                                 String certificationName, String mode, String status,
                                 LocalDateTime startTime, LocalDateTime endTime,
+                                LocalDateTime deadline,
                                 Integer durationMinutes, Integer passingScore,
                                 Integer totalQuestions, Integer currentQuestionIndex,
                                 List<QuestionResponse> questions) {
@@ -42,6 +44,7 @@ public class ExamSessionResponse extends BaseResponse {
         this.status = status;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.deadline = deadline;
         this.durationMinutes = durationMinutes;
         this.passingScore = passingScore;
         this.totalQuestions = totalQuestions;
@@ -113,6 +116,14 @@ public class ExamSessionResponse extends BaseResponse {
         this.endTime = endTime;
     }
 
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
+    }
+
     public Integer getDurationMinutes() {
         return durationMinutes;
     }
@@ -171,6 +182,7 @@ public class ExamSessionResponse extends BaseResponse {
         private String status;
         private LocalDateTime startTime;
         private LocalDateTime endTime;
+        private LocalDateTime deadline;
         private Integer durationMinutes;
         private Integer passingScore;
         private Integer totalQuestions;
@@ -190,6 +202,7 @@ public class ExamSessionResponse extends BaseResponse {
         public Builder status(String v) { this.status = v; return this; }
         public Builder startTime(LocalDateTime v) { this.startTime = v; return this; }
         public Builder endTime(LocalDateTime v) { this.endTime = v; return this; }
+        public Builder deadline(LocalDateTime v) { this.deadline = v; return this; }
         public Builder durationMinutes(Integer v) { this.durationMinutes = v; return this; }
         public Builder passingScore(Integer v) { this.passingScore = v; return this; }
         public Builder totalQuestions(Integer v) { this.totalQuestions = v; return this; }
@@ -211,6 +224,7 @@ public class ExamSessionResponse extends BaseResponse {
             o.status = this.status;
             o.startTime = this.startTime;
             o.endTime = this.endTime;
+            o.deadline = this.deadline;
             o.durationMinutes = this.durationMinutes;
             o.passingScore = this.passingScore;
             o.totalQuestions = this.totalQuestions;

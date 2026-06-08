@@ -13,6 +13,7 @@ public class ResumeSessionResponse {
     private String mode;
     private String status;
     private LocalDateTime startTime;
+    private LocalDateTime deadline;
     private Integer durationMinutes;
     private Integer totalQuestions;
     private Integer answeredCount;
@@ -88,6 +89,14 @@ public class ResumeSessionResponse {
         this.startTime = startTime;
     }
 
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
+    }
+
     public Integer getDurationMinutes() {
         return durationMinutes;
     }
@@ -157,6 +166,7 @@ public class ResumeSessionResponse {
         private String mode;
         private String status;
         private LocalDateTime startTime;
+        private LocalDateTime deadline;
         private Integer durationMinutes;
         private Integer totalQuestions;
         private Integer answeredCount;
@@ -173,6 +183,7 @@ public class ResumeSessionResponse {
         public Builder mode(String v) { this.mode = v; return this; }
         public Builder status(String v) { this.status = v; return this; }
         public Builder startTime(LocalDateTime v) { this.startTime = v; return this; }
+        public Builder deadline(LocalDateTime v) { this.deadline = v; return this; }
         public Builder durationMinutes(Integer v) { this.durationMinutes = v; return this; }
         public Builder totalQuestions(Integer v) { this.totalQuestions = v; return this; }
         public Builder answeredCount(Integer v) { this.answeredCount = v; return this; }
@@ -191,6 +202,7 @@ public class ResumeSessionResponse {
             o.mode = this.mode;
             o.status = this.status;
             o.startTime = this.startTime;
+            o.deadline = this.deadline;
             o.durationMinutes = this.durationMinutes;
             o.totalQuestions = this.totalQuestions;
             o.answeredCount = this.answeredCount;

@@ -19,6 +19,8 @@ public interface UserExamSessionRepository extends JpaRepository<UserExamSession
 
     List<UserExamSession> findByUserIdAndStatus(Long userId, String status);
 
+    List<UserExamSession> findByUserIdAndStatusIn(Long userId, List<String> statuses);
+
     Optional<UserExamSession> findByIdAndUserId(Long id, Long userId);
 
     int countByUserIdAndStatus(Long userId, String status);

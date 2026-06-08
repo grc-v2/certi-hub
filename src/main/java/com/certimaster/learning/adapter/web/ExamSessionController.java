@@ -3,11 +3,14 @@ package com.certimaster.learning.adapter.web;
 import com.certimaster.shared.security.SecurityUtils;
 import com.certimaster.learning.application.command.AbandonSessionCommand;
 import com.certimaster.learning.application.command.CompleteSessionCommand;
+import com.certimaster.learning.application.command.PauseSessionCommand;
+import com.certimaster.learning.application.command.ResumePlayCommand;
 import com.certimaster.learning.application.command.StartExamCommand;
 import com.certimaster.learning.application.command.StartPracticeSessionCommand;
 import com.certimaster.learning.application.command.SubmitAnswerCommand;
 import com.certimaster.learning.application.command.TimeoutSessionCommand;
 import com.certimaster.learning.adapter.web.request.AnswerQuestionRequest;
+import com.certimaster.learning.adapter.web.request.PauseSessionRequest;
 import com.certimaster.learning.adapter.web.request.StartExamRequest;
 import com.certimaster.learning.adapter.web.request.StartPracticeRequest;
 import com.certimaster.learning.adapter.web.response.AnswerFeedbackResponse;
@@ -45,15 +48,14 @@ public class ExamSessionController {
 
     @PostMapping("/exam/{examId}/start")
     public ResponseEntity<ExamSessionResponse> startExam(@PathVariable Long examId,
-                                                          @Valid @RequestBody StartExamRequest request) {
+                                                          @RequestBody(required = false) StartExamRequest request) {
         Long userId = SecurityUtils.getCurrentUserId();
         String username = SecurityUtils.getCurrentUsername();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(commandService.startExam(new StartExamCommand(
                         examId,
                         userId,
-                        username,
-                        request.getMode()
+                        username
                 )));
     }
 
@@ -120,6 +122,22 @@ public class ExamSessionController {
     public ResponseEntity<Void> abandonSession(@PathVariable Long sessionId) {
         Long userId = SecurityUtils.getCurrentUserId();
         commandService.abandonSession(new AbandonSessionCommand(sessionId, userId));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{sessionId}/pause")
+    public ResponseEntity<Void> pauseSession(@PathVariable Long sessionId,
+                                             @RequestBody(required = false) PauseSessionRequest request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        Integer timeSpent = request != null ? request.getTimeSpentSeconds() : null;
+        commandService.pauseSession(new PauseSessionCommand(sessionId, userId, timeSpent));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{sessionId}/resume-play")
+    public ResponseEntity<Void> resumePlay(@PathVariable Long sessionId) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        commandService.resumePlay(new ResumePlayCommand(sessionId, userId));
         return ResponseEntity.noContent().build();
     }
 

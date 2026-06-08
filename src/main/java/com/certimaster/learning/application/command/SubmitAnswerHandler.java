@@ -43,6 +43,7 @@ class SubmitAnswerHandler {
         UserExamSession session = sessionGuard.findSessionOrThrow(command.sessionId());
         sessionGuard.validateSessionOwner(session, command.userId());
         sessionGuard.validateSessionActive(session);
+        sessionGuard.assertWithinDeadline(session);
 
         UserAnswer userAnswer = userAnswerRepository.findByUserExamSessionIdAndQuestion_Id(command.sessionId(), command.questionId())
                 .orElseThrow(() -> BusinessException.invalidInput(

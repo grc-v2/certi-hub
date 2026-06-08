@@ -101,7 +101,8 @@ public class CourseMapper {
                 .instructor(course.getInstructor())
                 .thumbnailUrl(course.getThumbnailUrl())
                 .durationMinutes(course.getDurationMinutes())
-                .enrolledCount(course.getEnrolledCount());
+                .enrolledCount(course.getEnrolledCount())
+                .published(course.getPublished());
     }
 
     private CourseModuleResponse toModuleResponse(CourseModule module, Set<Long> completedLessonIds) {

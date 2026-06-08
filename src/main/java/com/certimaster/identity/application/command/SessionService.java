@@ -1,14 +1,13 @@
 package com.certimaster.identity.application.command;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,10 +30,9 @@ public class SessionService {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
 
-    public SessionService(RedisTemplate<String, String> redisTemplate) {
+    public SessionService(RedisTemplate<String, String> redisTemplate, ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -58,7 +56,7 @@ public class SessionService {
             redisTemplate.opsForSet().add(userSessionsKey, sessionToken);
             redisTemplate.expire(userSessionsKey, ttl, TimeUnit.SECONDS);
 
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Failed to serialize session: userId={}", userId, e);
             throw new RuntimeException("Failed to create session", e);
         }
@@ -80,7 +78,7 @@ public class SessionService {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> data = objectMapper.readValue(json, Map.class);
                     sessions.add(data);
-                } catch (JsonProcessingException e) {
+                } catch (JacksonException e) {
                     log.error("Failed to deserialize session: userId={}, sessionId={}", userId, sessionId, e);
                 }
             } else {

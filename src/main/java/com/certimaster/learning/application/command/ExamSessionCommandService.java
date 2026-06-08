@@ -20,19 +20,25 @@ public class ExamSessionCommandService {
     private final CompleteSessionHandler completeSessionHandler;
     private final TimeoutSessionHandler timeoutSessionHandler;
     private final AbandonSessionHandler abandonSessionHandler;
+    private final PauseSessionHandler pauseSessionHandler;
+    private final ResumePlayHandler resumePlayHandler;
 
     public ExamSessionCommandService(StartExamHandler startExamHandler,
                                      StartPracticeSessionHandler startPracticeSessionHandler,
                                      SubmitAnswerHandler submitAnswerHandler,
                                      CompleteSessionHandler completeSessionHandler,
                                      TimeoutSessionHandler timeoutSessionHandler,
-                                     AbandonSessionHandler abandonSessionHandler) {
+                                     AbandonSessionHandler abandonSessionHandler,
+                                     PauseSessionHandler pauseSessionHandler,
+                                     ResumePlayHandler resumePlayHandler) {
         this.startExamHandler = startExamHandler;
         this.startPracticeSessionHandler = startPracticeSessionHandler;
         this.submitAnswerHandler = submitAnswerHandler;
         this.completeSessionHandler = completeSessionHandler;
         this.timeoutSessionHandler = timeoutSessionHandler;
         this.abandonSessionHandler = abandonSessionHandler;
+        this.pauseSessionHandler = pauseSessionHandler;
+        this.resumePlayHandler = resumePlayHandler;
     }
 
     public ExamSessionResponse startExam(StartExamCommand command) {
@@ -57,5 +63,13 @@ public class ExamSessionCommandService {
 
     public void abandonSession(AbandonSessionCommand command) {
         abandonSessionHandler.handle(command);
+    }
+
+    public void pauseSession(PauseSessionCommand command) {
+        pauseSessionHandler.handle(command);
+    }
+
+    public void resumePlay(ResumePlayCommand command) {
+        resumePlayHandler.handle(command);
     }
 }

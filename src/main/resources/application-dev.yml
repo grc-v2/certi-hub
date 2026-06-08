@@ -7,8 +7,8 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:certimaster}
 
   jpa:
-    show-sql: false
+    show-sql: ${JPA_SHOW_SQL:false}
 
 logging:
   level:
-    com.certimaster: DEBUG
+    com.certimaster: ${LOG_LEVEL_CERTIMASTER:DEBUG}

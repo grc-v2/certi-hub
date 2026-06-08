@@ -34,6 +34,9 @@ public class AvatarStorageService  {
     @Value("${minio.endpoint:http://localhost:9000}")
     private String endpoint;
 
+    @Value("${minio.public-endpoint:http://localhost:9000}")
+    private String publicEndpoint;
+
     public AvatarStorageService(MinioClient minioClient) {
         this.minioClient = minioClient;
     }
@@ -64,8 +67,7 @@ public class AvatarStorageService  {
                     .contentType(file.getContentType())
                     .build());
 
-            String avatarUrl = endpoint + "/" + bucketName + "/" + objectName;
-            return avatarUrl;
+            return trimTrailingSlash(publicEndpoint) + "/" + bucketName + "/" + objectName;
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload avatar", e);
         }
@@ -99,5 +101,12 @@ public class AvatarStorageService  {
             return ".jpg";
         }
         return filename.substring(filename.lastIndexOf('.'));
+    }
+
+    private String trimTrailingSlash(String value) {
+        if (value == null || value.isBlank()) {
+            value = endpoint == null || endpoint.isBlank() ? "http://localhost:9000" : endpoint;
+        }
+        return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
     }
 }

@@ -18,6 +18,7 @@ public class CourseResponse extends BaseResponse {
     private Integer totalLessons;
     private Integer durationMinutes;
     private Integer enrolledCount;
+    private Boolean published;
     private List<CourseModuleResponse> modules = new ArrayList<>();
 
     public CourseResponse() {
@@ -53,6 +54,9 @@ public class CourseResponse extends BaseResponse {
     public Integer getEnrolledCount() { return enrolledCount; }
     public void setEnrolledCount(Integer enrolledCount) { this.enrolledCount = enrolledCount; }
 
+    public Boolean getPublished() { return published; }
+    public void setPublished(Boolean published) { this.published = published; }
+
     public List<CourseModuleResponse> getModules() { return modules; }
     public void setModules(List<CourseModuleResponse> modules) { this.modules = modules; }
 
@@ -74,6 +78,7 @@ public class CourseResponse extends BaseResponse {
         private Integer totalLessons;
         private Integer durationMinutes;
         private Integer enrolledCount;
+        private Boolean published;
         private List<CourseModuleResponse> modules = new ArrayList<>();
 
         public Builder id(Long v) { this.id = v; return this; }
@@ -91,6 +96,7 @@ public class CourseResponse extends BaseResponse {
         public Builder totalLessons(Integer v) { this.totalLessons = v; return this; }
         public Builder durationMinutes(Integer v) { this.durationMinutes = v; return this; }
         public Builder enrolledCount(Integer v) { this.enrolledCount = v; return this; }
+        public Builder published(Boolean v) { this.published = v; return this; }
         public Builder modules(List<CourseModuleResponse> v) { this.modules = v; return this; }
 
         public CourseResponse build() {
@@ -110,6 +116,7 @@ public class CourseResponse extends BaseResponse {
             o.totalLessons = this.totalLessons;
             o.durationMinutes = this.durationMinutes;
             o.enrolledCount = this.enrolledCount;
+            o.published = this.published;
             o.modules = this.modules;
             return o;
         }

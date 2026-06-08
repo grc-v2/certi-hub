@@ -1,8 +1,8 @@
 package com.certimaster.shared.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,11 +21,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -34,6 +36,27 @@ public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
     private final ObjectMapper objectMapper;
+
+    @Value("${security.cors.allowed-origins:http://localhost:3000,http://localhost:3001,https://certimaster.com}")
+    private String corsAllowedOrigins;
+
+    @Value("${security.cors.allowed-origin-patterns:}")
+    private String corsAllowedOriginPatterns;
+
+    @Value("${security.cors.allowed-methods:GET,POST,PUT,DELETE,OPTIONS,PATCH}")
+    private String corsAllowedMethods;
+
+    @Value("${security.cors.allowed-headers:Authorization,Content-Type,X-User-Id,X-Requested-With,Accept,Origin}")
+    private String corsAllowedHeaders;
+
+    @Value("${security.cors.exposed-headers:Authorization,X-User-Id}")
+    private String corsExposedHeaders;
+
+    @Value("${security.cors.allow-credentials:true}")
+    private boolean corsAllowCredentials;
+
+    @Value("${security.cors.max-age-seconds:3600}")
+    private long corsMaxAgeSeconds;
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/v1/auth/register",
@@ -103,17 +126,32 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001", "https://certimaster.com"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-User-Id", "X-Requested-With", "Accept", "Origin"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "X-User-Id"));
+        List<String> originPatterns = csv(corsAllowedOriginPatterns);
+        if (originPatterns.isEmpty()) {
+            configuration.setAllowedOrigins(csv(corsAllowedOrigins));
+        } else {
+            configuration.setAllowedOriginPatterns(originPatterns);
+        }
+        configuration.setAllowedMethods(csv(corsAllowedMethods));
+        configuration.setAllowedHeaders(csv(corsAllowedHeaders));
+        configuration.setAllowCredentials(corsAllowCredentials);
+        configuration.setMaxAge(corsMaxAgeSeconds);
+        configuration.setExposedHeaders(csv(corsExposedHeaders));
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         
         return source;
+    }
+
+    private List<String> csv(String value) {
+        if (value == null || value.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(value.split(","))
+                .map(String::trim)
+                .filter(item -> !item.isBlank())
+                .toList();
     }
 
     @Bean

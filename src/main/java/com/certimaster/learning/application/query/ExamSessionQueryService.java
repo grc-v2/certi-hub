@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.certimaster.learning.adapter.web.response.QuestionOptionResponse;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 import static com.certimaster.learning.domain.service.ExamSessionGuard.MODE_PRACTICE;
 import static com.certimaster.learning.domain.service.ExamSessionGuard.SESSION_RESOURCE;
 import static com.certimaster.learning.domain.service.ExamSessionGuard.STATUS_IN_PROGRESS;
+import static com.certimaster.learning.domain.service.ExamSessionGuard.STATUS_PAUSED;
 
 @Service
 @Transactional(readOnly = true)
@@ -86,6 +88,7 @@ public class ExamSessionQueryService {
                 .mode(session.getMode())
                 .status(session.getStatus())
                 .startTime(session.getStartTime())
+                .deadline(computeDeadline(session))
                 .durationMinutes(session.getDurationMinutes())
                 .totalQuestions(session.getTotalQuestions())
                 .answeredCount(session.getAnsweredCount())
@@ -97,7 +100,8 @@ public class ExamSessionQueryService {
     }
 
     public List<UserExamSessionResponse> getActiveSessions(Long userId) {
-        List<UserExamSession> sessions = userExamSessionRepository.findByUserIdAndStatus(userId, STATUS_IN_PROGRESS);
+        List<UserExamSession> sessions = userExamSessionRepository.findByUserIdAndStatusIn(
+                userId, List.of(STATUS_IN_PROGRESS, STATUS_PAUSED));
         return sessions.stream()
                 .map(this::mapToUserExamSessionResponse)
                 .toList();
@@ -107,7 +111,7 @@ public class ExamSessionQueryService {
         UserExamSession session = userExamSessionRepository.findByIdAndUserId(sessionId, userId)
                 .orElseThrow(() -> ResourceNotFoundException.byId(SESSION_RESOURCE, sessionId));
 
-        if (STATUS_IN_PROGRESS.equals(session.getStatus())) {
+        if (STATUS_IN_PROGRESS.equals(session.getStatus()) || STATUS_PAUSED.equals(session.getStatus())) {
             throw BusinessException.invalidInput("Cannot review an active session. Please complete or abandon it first.");
         }
 
@@ -196,6 +200,7 @@ public class ExamSessionQueryService {
                 .certificationName(session.getCertification() != null ? session.getCertification().getName() : null)
                 .startTime(session.getStartTime())
                 .endTime(session.getEndTime())
+                .deadline(computeDeadline(session))
                 .status(session.getStatus())
                 .mode(session.getMode())
                 .examTitle(session.getExamTitle())
@@ -210,5 +215,12 @@ public class ExamSessionQueryService {
                 .createdAt(session.getCreatedAt())
                 .updatedAt(session.getUpdatedAt())
                 .build();
+    }
+
+    private LocalDateTime computeDeadline(UserExamSession session) {
+        if (session.getStartTime() == null || session.getDurationMinutes() == null) {
+            return null;
+        }
+        return session.getStartTime().plusMinutes(session.getDurationMinutes());
     }
 }
