@@ -3,8 +3,10 @@ package com.certimaster.learning.application.query;
 import com.certimaster.learning.adapter.persistence.CourseLessonRepository;
 import com.certimaster.learning.adapter.persistence.CourseReadRepository;
 import com.certimaster.learning.adapter.web.mapper.CourseMapper;
+import com.certimaster.learning.adapter.web.response.CourseLessonDetailResponse;
 import com.certimaster.learning.adapter.web.response.CourseResponse;
 import com.certimaster.learning.domain.entity.Course;
+import com.certimaster.learning.domain.entity.CourseLesson;
 import com.certimaster.shared.dto.PageResponse;
 import com.certimaster.shared.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import java.util.Set;
 public class CourseAdminQueryService {
 
     private static final String COURSE = "Course";
+    private static final String COURSE_LESSON = "Course lesson";
 
     private final CourseReadRepository courseRepository;
     private final CourseLessonRepository lessonRepository;
@@ -54,6 +57,12 @@ public class CourseAdminQueryService {
         Course course = courseRepository.findDetailById(courseId)
                 .orElseThrow(() -> ResourceNotFoundException.byId(COURSE, courseId));
         return courseMapper.toDetailResponse(course, Set.of());
+    }
+
+    public CourseLessonDetailResponse getLessonDetail(Long courseId, Long moduleId, Long lessonId) {
+        CourseLesson lesson = lessonRepository.findByCourseModuleAndLessonId(courseId, moduleId, lessonId)
+                .orElseThrow(() -> ResourceNotFoundException.byId(COURSE_LESSON, lessonId));
+        return courseMapper.toLessonDetailResponse(lesson, courseId, false, null, null);
     }
 
     private Sort createSort(String sortBy, String sortDirection) {

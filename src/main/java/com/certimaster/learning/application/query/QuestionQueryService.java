@@ -8,16 +8,19 @@ import com.certimaster.learning.domain.entity.Exam;
 import com.certimaster.learning.domain.entity.ExamQuestion;
 import com.certimaster.learning.adapter.persistence.ExamQuestionRepository;
 import com.certimaster.learning.adapter.persistence.ExamReadRepository;
+import com.certimaster.learning.application.query.GetFlashcardQuestionsQuery;
 import com.certimaster.learning.application.query.GetQuestionByIdQuery;
 import com.certimaster.learning.application.query.GetQuestionForExamQuery;
 import com.certimaster.learning.application.query.GetQuestionsByDomainQuery;
 import com.certimaster.learning.application.query.GetQuestionsByExamQuery;
 import com.certimaster.learning.application.query.SearchQuestionsQuery;
 import com.certimaster.learning.adapter.web.response.ExamQuestionsGroupedResponse;
+import com.certimaster.learning.adapter.web.response.PracticeQuestionCriteria;
 import com.certimaster.learning.adapter.web.response.QuestionResponse;
 import com.certimaster.learning.domain.entity.Question;
 import com.certimaster.learning.adapter.web.mapper.QuestionMapper;
 import com.certimaster.learning.adapter.persistence.QuestionReadRepository;
+import com.certimaster.learning.domain.service.QuestionSelectionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -43,15 +46,18 @@ public class QuestionQueryService {
     private final QuestionMapper questionMapper;
     private final ExamQuestionRepository examQuestionRepository;
     private final ExamReadRepository examRepository;
+    private final QuestionSelectionService questionSelectionService;
 
     public QuestionQueryService(QuestionReadRepository questionRepository,
                                 QuestionMapper questionMapper,
                                 ExamQuestionRepository examQuestionRepository,
-                                ExamReadRepository examRepository) {
+                                ExamReadRepository examRepository,
+                                QuestionSelectionService questionSelectionService) {
         this.questionRepository = questionRepository;
         this.questionMapper = questionMapper;
         this.examQuestionRepository = examQuestionRepository;
         this.examRepository = examRepository;
+        this.questionSelectionService = questionSelectionService;
     }
 
     public PageResponse<QuestionResponse> search(SearchQuestionsQuery query) {
@@ -143,6 +149,21 @@ public class QuestionQueryService {
 
     public List<QuestionResponse> getByDomainId(GetQuestionsByDomainQuery query) {
         return questionRepository.findByDomainId(query.domainId()).stream()
+                .map(questionMapper::toResponse)
+                .toList();
+    }
+
+    public List<QuestionResponse> getFlashcardQuestions(GetFlashcardQuestionsQuery query) {
+        int count = query.count() != null && query.count() > 0 ? query.count() : 20;
+        PracticeQuestionCriteria criteria = new PracticeQuestionCriteria(
+                query.certificationId(),
+                null,
+                query.domainIds(),
+                query.difficulties(),
+                count,
+                null
+        );
+        return questionSelectionService.selectPracticeQuestions(criteria).stream()
                 .map(questionMapper::toResponse)
                 .toList();
     }

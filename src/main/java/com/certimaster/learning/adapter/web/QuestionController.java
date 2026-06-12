@@ -8,10 +8,12 @@ import com.certimaster.learning.application.command.CreateQuestionCommand;
 import com.certimaster.learning.application.command.DeleteQuestionCommand;
 import com.certimaster.learning.application.command.QuestionOptionCommand;
 import com.certimaster.learning.application.command.UpdateQuestionCommand;
+import com.certimaster.learning.application.query.GetFlashcardQuestionsQuery;
 import com.certimaster.learning.application.query.GetQuestionByIdQuery;
 import com.certimaster.learning.application.query.GetQuestionForExamQuery;
 import com.certimaster.learning.application.query.GetQuestionsByDomainQuery;
 import com.certimaster.learning.application.query.GetQuestionsByExamQuery;
+import com.certimaster.learning.adapter.web.request.FlashcardQuestionRequest;
 import com.certimaster.learning.adapter.web.request.QuestionOptionRequest;
 import com.certimaster.learning.adapter.web.request.QuestionWithOptionsRequest;
 import com.certimaster.learning.adapter.web.response.BulkImportResponse;
@@ -69,6 +71,17 @@ public class QuestionController {
     @GetMapping("/domain/{domainId}")
     public ResponseEntity<List<QuestionResponse>> getByDomainId(@PathVariable Long domainId) {
         return ResponseEntity.ok(questionQueryService.getByDomainId(new GetQuestionsByDomainQuery(domainId)));
+    }
+
+    @PostMapping("/flashcard")
+    public ResponseEntity<List<QuestionResponse>> getFlashcardQuestions(
+            @Valid @RequestBody FlashcardQuestionRequest request) {
+        return ResponseEntity.ok(questionQueryService.getFlashcardQuestions(new GetFlashcardQuestionsQuery(
+                request.getCertificationId(),
+                request.getDomainIds(),
+                request.getDifficulties(),
+                request.getCount()
+        )));
     }
 
     @PostMapping

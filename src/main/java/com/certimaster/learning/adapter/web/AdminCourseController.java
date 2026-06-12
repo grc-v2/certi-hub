@@ -3,6 +3,7 @@ package com.certimaster.learning.adapter.web;
 import com.certimaster.learning.adapter.web.request.CourseLessonRequest;
 import com.certimaster.learning.adapter.web.request.CourseModuleRequest;
 import com.certimaster.learning.adapter.web.request.CourseRequest;
+import com.certimaster.learning.adapter.web.response.CourseLessonDetailResponse;
 import com.certimaster.learning.adapter.web.response.CourseResponse;
 import com.certimaster.learning.application.command.CourseAdminCommandService;
 import com.certimaster.learning.application.query.CourseAdminQueryService;
@@ -104,6 +105,13 @@ public class AdminCourseController {
     public ResponseEntity<CourseResponse> deleteModule(@PathVariable Long id,
                                                        @PathVariable Long moduleId) {
         return ResponseEntity.ok(commandService.deleteModule(id, moduleId));
+    }
+
+    @GetMapping("/{id}/modules/{moduleId}/lessons/{lessonId}")
+    public ResponseEntity<CourseLessonDetailResponse> getLessonDetail(@PathVariable Long id,
+                                                                      @PathVariable Long moduleId,
+                                                                      @PathVariable Long lessonId) {
+        return ResponseEntity.ok(queryService.getLessonDetail(id, moduleId, lessonId));
     }
 
     @PostMapping("/{id}/modules/{moduleId}/lessons")
