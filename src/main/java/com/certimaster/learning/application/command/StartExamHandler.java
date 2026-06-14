@@ -11,6 +11,7 @@ import com.certimaster.learning.adapter.persistence.ExamWriteRepository;
 import com.certimaster.learning.adapter.persistence.UserExamSessionRepository;
 import com.certimaster.learning.domain.service.ExamSessionQuestionInitializer;
 import com.certimaster.learning.domain.service.QuestionSelectionService;
+import com.certimaster.learning.adapter.web.mapper.OrderedQuestionResponseAssembler;
 import com.certimaster.learning.adapter.web.response.QuestionResponse;
 import com.certimaster.learning.domain.entity.Question;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ class StartExamHandler {
     private final UserExamSessionRepository userExamSessionRepository;
     private final QuestionSelectionService questionSelectionService;
     private final ExamSessionQuestionInitializer questionInitializer;
+    private final OrderedQuestionResponseAssembler questionResponseAssembler;
 
     @Value("${exam.session.max-concurrent:3}")
     private int maxConcurrentSessions;
@@ -39,11 +41,13 @@ class StartExamHandler {
     StartExamHandler(ExamWriteRepository examRepository,
                      UserExamSessionRepository userExamSessionRepository,
                      QuestionSelectionService questionSelectionService,
-                     ExamSessionQuestionInitializer questionInitializer) {
+                     ExamSessionQuestionInitializer questionInitializer,
+                     OrderedQuestionResponseAssembler questionResponseAssembler) {
         this.examRepository = examRepository;
         this.userExamSessionRepository = userExamSessionRepository;
         this.questionSelectionService = questionSelectionService;
         this.questionInitializer = questionInitializer;
+        this.questionResponseAssembler = questionResponseAssembler;
     }
 
     @Transactional
@@ -89,7 +93,7 @@ class StartExamHandler {
 
         userExamSessionRepository.save(session);
         List<UserAnswer> savedAnswers = questionInitializer.createUserAnswers(session, questions);
-        List<QuestionResponse> questionResponses = questionInitializer.buildOrderedQuestionResponses(questions, savedAnswers);
+        List<QuestionResponse> questionResponses = questionResponseAssembler.buildOrderedQuestionResponses(questions, savedAnswers);
 
         LocalDateTime deadline = exam.getDurationMinutes() != null
                 ? startTime.plusMinutes(exam.getDurationMinutes())

@@ -6,12 +6,13 @@ import com.certimaster.learning.domain.entity.Certification;
 import com.certimaster.learning.adapter.persistence.CertificationWriteRepository;
 import com.certimaster.learning.application.command.StartPracticeSessionCommand;
 import com.certimaster.learning.adapter.web.response.ExamSessionResponse;
-import com.certimaster.learning.adapter.web.response.PracticeQuestionCriteria;
+import com.certimaster.learning.domain.model.PracticeQuestionCriteria;
 import com.certimaster.learning.domain.entity.UserAnswer;
 import com.certimaster.learning.domain.entity.UserExamSession;
 import com.certimaster.learning.adapter.persistence.UserExamSessionRepository;
 import com.certimaster.learning.domain.service.ExamSessionQuestionInitializer;
 import com.certimaster.learning.domain.service.QuestionSelectionService;
+import com.certimaster.learning.adapter.web.mapper.OrderedQuestionResponseAssembler;
 import com.certimaster.learning.adapter.web.response.QuestionResponse;
 import com.certimaster.learning.domain.entity.Question;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ class StartPracticeSessionHandler {
     private final CertificationWriteRepository certificationRepository;
     private final QuestionSelectionService questionSelectionService;
     private final ExamSessionQuestionInitializer questionInitializer;
+    private final OrderedQuestionResponseAssembler questionResponseAssembler;
 
     @Value("${exam.session.max-concurrent:3}")
     private int maxConcurrentSessions;
@@ -39,11 +41,13 @@ class StartPracticeSessionHandler {
     StartPracticeSessionHandler(UserExamSessionRepository userExamSessionRepository,
                                 CertificationWriteRepository certificationRepository,
                                 QuestionSelectionService questionSelectionService,
-                                ExamSessionQuestionInitializer questionInitializer) {
+                                ExamSessionQuestionInitializer questionInitializer,
+                                OrderedQuestionResponseAssembler questionResponseAssembler) {
         this.userExamSessionRepository = userExamSessionRepository;
         this.certificationRepository = certificationRepository;
         this.questionSelectionService = questionSelectionService;
         this.questionInitializer = questionInitializer;
+        this.questionResponseAssembler = questionResponseAssembler;
     }
 
     @Transactional
@@ -90,7 +94,7 @@ class StartPracticeSessionHandler {
         userExamSessionRepository.save(session);
 
         List<UserAnswer> savedAnswers = questionInitializer.createUserAnswers(session, questions);
-        List<QuestionResponse> questionResponses = questionInitializer.buildOrderedQuestionResponses(questions, savedAnswers);
+        List<QuestionResponse> questionResponses = questionResponseAssembler.buildOrderedQuestionResponses(questions, savedAnswers);
 
         return ExamSessionResponse.builder()
                 .id(session.getId())

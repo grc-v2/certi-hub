@@ -1,4 +1,4 @@
-package com.certimaster.learning.domain.service;
+package com.certimaster.learning.application.command;
 
 import com.certimaster.learning.adapter.web.response.ExamResultResponse;
 import com.certimaster.learning.domain.entity.UserExamSession;

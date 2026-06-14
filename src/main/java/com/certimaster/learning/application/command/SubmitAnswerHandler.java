@@ -3,18 +3,16 @@ package com.certimaster.learning.application.command;
 import com.certimaster.shared.exception.BusinessException;
 import com.certimaster.learning.application.command.SubmitAnswerCommand;
 import com.certimaster.learning.adapter.web.response.AnswerFeedbackResponse;
-import com.certimaster.learning.adapter.web.response.GradingResult;
+import com.certimaster.learning.domain.model.Grade;
 import com.certimaster.learning.domain.entity.UserAnswer;
 import com.certimaster.learning.domain.entity.UserExamSession;
 import com.certimaster.learning.adapter.persistence.UserAnswerRepository;
 import com.certimaster.learning.adapter.persistence.UserExamSessionRepository;
 import com.certimaster.learning.domain.service.ExamSessionGuard;
-import com.certimaster.learning.domain.service.GradingService;
 import com.certimaster.learning.domain.entity.Question;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.certimaster.learning.domain.service.ExamSessionGuard.MODE_PRACTICE;
@@ -25,16 +23,13 @@ class SubmitAnswerHandler {
 
     private final UserAnswerRepository userAnswerRepository;
     private final UserExamSessionRepository userExamSessionRepository;
-    private final GradingService gradingService;
     private final ExamSessionGuard sessionGuard;
 
     SubmitAnswerHandler(UserAnswerRepository userAnswerRepository,
                         UserExamSessionRepository userExamSessionRepository,
-                        GradingService gradingService,
                         ExamSessionGuard sessionGuard) {
         this.userAnswerRepository = userAnswerRepository;
         this.userExamSessionRepository = userExamSessionRepository;
-        this.gradingService = gradingService;
         this.sessionGuard = sessionGuard;
     }
 
@@ -42,8 +37,8 @@ class SubmitAnswerHandler {
     AnswerFeedbackResponse handle(SubmitAnswerCommand command) {
         UserExamSession session = sessionGuard.findSessionOrThrow(command.sessionId());
         sessionGuard.validateSessionOwner(session, command.userId());
-        sessionGuard.validateSessionActive(session);
-        sessionGuard.assertWithinDeadline(session);
+        session.ensureActive();
+        session.ensureWithinDeadline();
 
         UserAnswer userAnswer = userAnswerRepository.findByUserExamSessionIdAndQuestion_Id(command.sessionId(), command.questionId())
                 .orElseThrow(() -> BusinessException.invalidInput(
@@ -51,41 +46,13 @@ class SubmitAnswerHandler {
 
         Question question = userAnswer.getQuestion();
 
-        GradingResult gradingResult = gradingService.gradeAnswer(question, command.selectedOptionIds());
-        boolean isCorrect = gradingResult.correct();
-
-        boolean wasAnsweredBefore = userAnswer.getSelectedOptionIds() != null;
-        Boolean wasPreviouslyCorrect = userAnswer.getIsCorrect();
-
-        userAnswer.setSelectedOptionIds(command.selectedOptionIds().toArray(new Long[0]));
-        userAnswer.setCorrectOptionIds(gradingResult.correctOptionIds().toArray(new Long[0]));
-        userAnswer.setIsCorrect(isCorrect);
-        userAnswer.setAnsweredAt(LocalDateTime.now());
-
-        if (command.timeSpentSeconds() != null) {
-            userAnswer.setTimeSpentSeconds(userAnswer.getTimeSpentSeconds() + command.timeSpentSeconds());
-        }
-
-        if (command.isFlagged() != null) {
-            boolean wasFlagged = Boolean.TRUE.equals(userAnswer.getIsFlagged());
-            boolean nowFlagged = command.isFlagged();
-            if (wasFlagged != nowFlagged) {
-                userAnswer.setIsFlagged(nowFlagged);
-                if (nowFlagged) {
-                    session.setFlaggedCount(session.getFlaggedCount() + 1);
-                } else {
-                    session.setFlaggedCount(Math.max(0, session.getFlaggedCount() - 1));
-                }
-            }
-        }
+        Grade grade = session.recordAnswer(
+                userAnswer,
+                command.selectedOptionIds(),
+                command.timeSpentSeconds(),
+                command.isFlagged());
 
         userAnswerRepository.save(userAnswer);
-        updateSessionStatistics(session, wasAnsweredBefore, wasPreviouslyCorrect, isCorrect);
-
-        if (command.timeSpentSeconds() != null) {
-            session.setTimeSpentSeconds(session.getTimeSpentSeconds() + command.timeSpentSeconds());
-        }
-
         userExamSessionRepository.save(session);
 
         AnswerFeedbackResponse.Builder responseBuilder = AnswerFeedbackResponse.builder()
@@ -97,35 +64,12 @@ class SubmitAnswerHandler {
                     ? List.of(question.getReferenceUrl())
                     : null;
             responseBuilder
-                    .isCorrect(isCorrect)
-                    .correctOptionIds(gradingResult.correctOptionIds())
+                    .isCorrect(grade.correct())
+                    .correctOptionIds(grade.correctOptionIds())
                     .explanation(question.getExplanation())
                     .referenceLinks(referenceLinks);
         }
 
         return responseBuilder.build();
-    }
-
-    private void updateSessionStatistics(UserExamSession session,
-                                         boolean wasAnsweredBefore,
-                                         Boolean wasPreviouslyCorrect,
-                                         boolean isCorrect) {
-        if (!wasAnsweredBefore) {
-            session.setAnsweredCount(session.getAnsweredCount() + 1);
-            session.setUnansweredCount(Math.max(0, session.getUnansweredCount() - 1));
-            if (isCorrect) {
-                session.setCorrectCount(session.getCorrectCount() + 1);
-            } else {
-                session.setWrongCount(session.getWrongCount() + 1);
-            }
-        } else if (wasPreviouslyCorrect != null && wasPreviouslyCorrect != isCorrect) {
-            if (isCorrect) {
-                session.setCorrectCount(session.getCorrectCount() + 1);
-                session.setWrongCount(Math.max(0, session.getWrongCount() - 1));
-            } else {
-                session.setCorrectCount(Math.max(0, session.getCorrectCount() - 1));
-                session.setWrongCount(session.getWrongCount() + 1);
-            }
-        }
     }
 }

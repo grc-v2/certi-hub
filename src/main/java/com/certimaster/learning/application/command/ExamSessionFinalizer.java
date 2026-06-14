@@ -1,14 +1,14 @@
-package com.certimaster.learning.domain.service;
+package com.certimaster.learning.application.command;
 
 import com.certimaster.shared.exception.BusinessException;
 import com.certimaster.learning.adapter.web.response.ExamResultResponse;
-import com.certimaster.learning.adapter.web.response.SessionScoreResult;
 import com.certimaster.learning.domain.entity.UserAnswer;
 import com.certimaster.learning.domain.entity.UserExamSession;
 import com.certimaster.learning.adapter.persistence.UserAnswerRepository;
 import com.certimaster.learning.adapter.persistence.UserExamSessionRepository;
 import com.certimaster.learning.adapter.persistence.ExamResultWriteRepository;
-import com.certimaster.learning.application.command.ExamResultProcessingService;
+import com.certimaster.learning.domain.service.ExamCompletedEventFactory;
+import com.certimaster.learning.domain.service.ExamSessionGuard;
 import com.certimaster.learning.domain.event.ExamCompletedEvent;
 import com.certimaster.learning.domain.event.ResultCreatedEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,6 +19,12 @@ import java.util.List;
 
 import static com.certimaster.learning.domain.service.ExamSessionGuard.STATUS_IN_PROGRESS;
 
+/**
+ * Orchestrates finishing a session: loads answers, delegates scoring to the aggregate's
+ * {@code complete(...)}, persists the {@code ExamResult} snapshot via the result processor,
+ * and publishes the completion events. Lives in the application layer because it coordinates
+ * application services and the web response shape; the domain aggregate owns the scoring itself.
+ */
 @Component
 public class ExamSessionFinalizer {
 
@@ -28,7 +34,6 @@ public class ExamSessionFinalizer {
     private final ExamResultProcessingService examResultProcessingService;
     private final ApplicationEventPublisher applicationEvents;
     private final ExamSessionGuard sessionGuard;
-    private final GradingService gradingService;
     private final ExamCompletedEventFactory examCompletedEventFactory;
     private final ResultCreatedEventFactory resultCreatedEventFactory;
 
@@ -38,7 +43,6 @@ public class ExamSessionFinalizer {
                                 ExamResultProcessingService examResultProcessingService,
                                 ApplicationEventPublisher applicationEvents,
                                 ExamSessionGuard sessionGuard,
-                                GradingService gradingService,
                                 ExamCompletedEventFactory examCompletedEventFactory,
                                 ResultCreatedEventFactory resultCreatedEventFactory) {
         this.userExamSessionRepository = userExamSessionRepository;
@@ -47,7 +51,6 @@ public class ExamSessionFinalizer {
         this.examResultProcessingService = examResultProcessingService;
         this.applicationEvents = applicationEvents;
         this.sessionGuard = sessionGuard;
-        this.gradingService = gradingService;
         this.examCompletedEventFactory = examCompletedEventFactory;
         this.resultCreatedEventFactory = resultCreatedEventFactory;
     }
@@ -76,14 +79,8 @@ public class ExamSessionFinalizer {
 
         LocalDateTime endTime = LocalDateTime.now();
         List<UserAnswer> userAnswers = userAnswerRepository.findByUserExamSessionId(session.getId());
-        SessionScoreResult scoreResult = gradingService.calculateSessionScore(session, userAnswers);
 
-        session.setStatus(targetStatus);
-        session.setEndTime(endTime);
-        session.setScore(scoreResult.score());
-        session.setScorePercentage(scoreResult.scorePercentage());
-        session.setPassed(scoreResult.passed());
-        session.setDomainScores(scoreResult.domainScores());
+        session.complete(userAnswers, targetStatus, endTime);
 
         userExamSessionRepository.save(session);
 

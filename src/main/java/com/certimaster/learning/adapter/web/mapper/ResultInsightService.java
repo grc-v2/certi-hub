@@ -1,4 +1,4 @@
-package com.certimaster.learning.domain.service;
+package com.certimaster.learning.adapter.web.mapper;
 
 import com.certimaster.learning.adapter.web.response.Badge;
 import com.certimaster.learning.adapter.web.response.ResultSummary;

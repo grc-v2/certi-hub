@@ -15,7 +15,7 @@ import com.certimaster.learning.application.query.GetQuestionsByDomainQuery;
 import com.certimaster.learning.application.query.GetQuestionsByExamQuery;
 import com.certimaster.learning.application.query.SearchQuestionsQuery;
 import com.certimaster.learning.adapter.web.response.ExamQuestionsGroupedResponse;
-import com.certimaster.learning.adapter.web.response.PracticeQuestionCriteria;
+import com.certimaster.learning.domain.model.PracticeQuestionCriteria;
 import com.certimaster.learning.adapter.web.response.QuestionResponse;
 import com.certimaster.learning.domain.entity.Question;
 import com.certimaster.learning.adapter.web.mapper.QuestionMapper;

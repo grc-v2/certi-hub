@@ -6,8 +6,6 @@ import com.certimaster.learning.domain.entity.UserExamSession;
 import com.certimaster.learning.adapter.persistence.UserExamSessionRepository;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 public class ExamSessionGuard {
 
@@ -36,40 +34,5 @@ public class ExamSessionGuard {
         if (!session.getUserId().equals(userId)) {
             throw BusinessException.invalidInput("You don't have access to this session");
         }
-    }
-
-    public void validateSessionActive(UserExamSession session) {
-        if (!STATUS_IN_PROGRESS.equals(session.getStatus())) {
-            throw BusinessException.invalidInput("This session is no longer active");
-        }
-    }
-
-    public void validateSessionPausable(UserExamSession session) {
-        if (!MODE_PRACTICE.equals(session.getMode())) {
-            throw BusinessException.invalidInput("Only practice sessions can be paused");
-        }
-        if (!STATUS_IN_PROGRESS.equals(session.getStatus())) {
-            throw BusinessException.invalidInput("Only active sessions can be paused");
-        }
-    }
-
-    public void validateSessionResumable(UserExamSession session) {
-        if (!STATUS_PAUSED.equals(session.getStatus())) {
-            throw BusinessException.invalidInput("Only paused sessions can be resumed");
-        }
-    }
-
-    public void assertWithinDeadline(UserExamSession session) {
-        LocalDateTime deadline = computeDeadline(session);
-        if (deadline != null && LocalDateTime.now().isAfter(deadline)) {
-            throw BusinessException.invalidInput("Session deadline has passed");
-        }
-    }
-
-    public LocalDateTime computeDeadline(UserExamSession session) {
-        if (session.getStartTime() == null || session.getDurationMinutes() == null) {
-            return null;
-        }
-        return session.getStartTime().plusMinutes(session.getDurationMinutes());
     }
 }

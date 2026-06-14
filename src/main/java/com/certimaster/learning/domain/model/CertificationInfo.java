@@ -1,4 +1,4 @@
-package com.certimaster.learning.adapter.web.response;
+package com.certimaster.learning.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

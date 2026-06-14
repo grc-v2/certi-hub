@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
-class ExamCompletedEventFactory {
+public class ExamCompletedEventFactory {
 
-    ExamCompletedEvent create(UserExamSession session, List<UserAnswer> userAnswers, LocalDateTime endTime) {
+    public ExamCompletedEvent create(UserExamSession session, List<UserAnswer> userAnswers, LocalDateTime endTime) {
         Exam exam = session.getExam();
         List<ExamCompletedEvent.UserAnswerData> answerDataList = userAnswers.stream()
                 .map(this::toUserAnswerData)

@@ -7,10 +7,6 @@ import com.certimaster.learning.domain.service.ExamSessionGuard;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
-import static com.certimaster.learning.domain.service.ExamSessionGuard.STATUS_ABANDONED;
-
 @Component
 class AbandonSessionHandler {
 
@@ -28,10 +24,8 @@ class AbandonSessionHandler {
     void handle(AbandonSessionCommand command) {
         UserExamSession session = sessionGuard.findSessionOrThrow(command.sessionId());
         sessionGuard.validateSessionOwner(session, command.userId());
-        sessionGuard.validateSessionActive(session);
 
-        session.setStatus(STATUS_ABANDONED);
-        session.setEndTime(LocalDateTime.now());
+        session.abandon();
         userExamSessionRepository.save(session);
     }
 }

@@ -2,9 +2,9 @@ package com.certimaster.learning.application.query;
 
 import com.certimaster.shared.dto.PageResponse;
 import com.certimaster.learning.application.query.GetUserHistoryQuery;
-import com.certimaster.learning.adapter.web.response.CertificationInfo;
+import com.certimaster.learning.domain.model.CertificationInfo;
 import com.certimaster.learning.adapter.web.response.CertificationStats;
-import com.certimaster.learning.adapter.web.response.ExamInfo;
+import com.certimaster.learning.domain.model.ExamInfo;
 import com.certimaster.learning.adapter.web.response.HistoryItem;
 import com.certimaster.learning.adapter.web.response.HistoryStatistics;
 import com.certimaster.learning.adapter.web.response.UserHistoryResponse;

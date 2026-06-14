@@ -1,7 +1,7 @@
 package com.certimaster.learning.domain.service;
 
-import com.certimaster.learning.adapter.web.response.PracticeQuestionCriteria;
-import com.certimaster.learning.adapter.web.response.QuestionSelectionCriteria;
+import com.certimaster.learning.domain.model.PracticeQuestionCriteria;
+import com.certimaster.learning.domain.model.QuestionSelectionCriteria;
 import com.certimaster.learning.domain.entity.Exam;
 import com.certimaster.learning.domain.entity.ExamQuestion;
 import com.certimaster.learning.domain.entity.Question;

@@ -3,6 +3,7 @@ package com.certimaster.learning.domain.entity;
 import com.certimaster.shared.entity.BaseEntity;
 import com.certimaster.learning.domain.entity.CertificationDomain;
 import com.certimaster.learning.domain.entity.ExamQuestion;
+import com.certimaster.learning.domain.model.Grade;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "questions")
@@ -151,6 +153,22 @@ public class Question extends BaseEntity {
 
     public Set<ExamQuestion> getExamQuestions() { return examQuestions; }
     public void setExamQuestions(Set<ExamQuestion> examQuestions) { this.examQuestions = examQuestions; }
+
+    /**
+     * Grades a set of selected option ids against this question's correct options.
+     * Correct when the selected set exactly equals the set of options marked correct.
+     */
+    public Grade grade(List<Long> selectedOptionIds) {
+        Set<Long> correctOptionIds = questionOptions.stream()
+                .filter(option -> Boolean.TRUE.equals(option.getIsCorrect()))
+                .map(QuestionOption::getId)
+                .collect(Collectors.toSet());
+
+        boolean correct = correctOptionIds.size() == selectedOptionIds.size()
+                && correctOptionIds.containsAll(selectedOptionIds);
+
+        return new Grade(correct, List.copyOf(correctOptionIds));
+    }
 
     public static Builder builder() { return new Builder(); }
 
