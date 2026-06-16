@@ -70,7 +70,7 @@ public class OpenApiConfig {
     public GroupedOpenApi learningGroup() {
         return GroupedOpenApi.builder()
                 .group("2-learning")
-                .displayName("Learning (Certifications, Courses, Exams)")
+                .displayName("Learning (Certifications, Exams)")
                 .packagesToScan("com.certimaster.learning.adapter.web")
                 .build();
     }

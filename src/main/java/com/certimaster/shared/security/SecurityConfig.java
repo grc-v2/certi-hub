@@ -73,7 +73,8 @@ public class SecurityConfig {
             "/actuator/health/**",
             "/actuator/info",
             "/health",
-            "/health/**"
+            "/health/**",
+            "/bootui/**"
     };
 
     private static final String[] PUBLIC_GET_ENDPOINTS = {
@@ -81,8 +82,6 @@ public class SecurityConfig {
             "/api/v1/lookups/**",
             "/api/v1/certifications",
             "/api/v1/certifications/**",
-            "/api/v1/courses",
-            "/api/v1/courses/*",
             "/api/v1/providers",
             "/api/v1/providers/**",
             "/api/v1/posts",

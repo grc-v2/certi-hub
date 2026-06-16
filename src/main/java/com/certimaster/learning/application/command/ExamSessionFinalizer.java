@@ -98,10 +98,12 @@ public class ExamSessionFinalizer {
                                              LocalDateTime endTime,
                                              boolean publishWhenCreated) {
         boolean resultAlreadyExists = examResultRepository.findBySessionId(session.getId()).isPresent();
-        ExamCompletedEvent completedEvent = examCompletedEventFactory.create(session, userAnswers, endTime);
-        ExamResultResponse result = examResultProcessingService.processCompletedExam(completedEvent);
+        ExamResultResponse result = examResultProcessingService.processCompletedExam(session, userAnswers, endTime);
 
         if (publishWhenCreated && !resultAlreadyExists) {
+            // The externalized ExamCompletedEvent is a wire shape — built only here, at the
+            // publication seam, never threaded through the internal scoring/persistence path.
+            ExamCompletedEvent completedEvent = examCompletedEventFactory.create(session, userAnswers, endTime);
             ResultCreatedEvent resultCreatedEvent = resultCreatedEventFactory.create(session, result);
             applicationEvents.publishEvent(completedEvent);
             applicationEvents.publishEvent(resultCreatedEvent);

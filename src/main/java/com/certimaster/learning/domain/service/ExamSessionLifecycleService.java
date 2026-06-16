@@ -2,7 +2,7 @@ package com.certimaster.learning.domain.service;
 
 import com.certimaster.learning.domain.entity.UserExamSession;
 import com.certimaster.learning.adapter.persistence.UserExamSessionRepository;
-import com.certimaster.learning.application.command.TimeoutSessionHandler;
+import com.certimaster.learning.application.command.ExamSessionCommandService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,15 +18,15 @@ public class ExamSessionLifecycleService {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionLifecycleService.class);
 
     private final UserExamSessionRepository userExamSessionRepository;
-    private final TimeoutSessionHandler timeoutSessionHandler;
+    private final ExamSessionCommandService examSessionCommandService;
 
     @Value("${exam.session.auto-expire-enabled:true}")
     private boolean autoExpireEnabled;
 
     ExamSessionLifecycleService(UserExamSessionRepository userExamSessionRepository,
-                                TimeoutSessionHandler timeoutSessionHandler) {
+                                ExamSessionCommandService examSessionCommandService) {
         this.userExamSessionRepository = userExamSessionRepository;
-        this.timeoutSessionHandler = timeoutSessionHandler;
+        this.examSessionCommandService = examSessionCommandService;
     }
 
     /**
@@ -44,7 +44,7 @@ public class ExamSessionLifecycleService {
         }
         for (UserExamSession session : expired) {
             try {
-                timeoutSessionHandler.expire(session.getId());
+                examSessionCommandService.expire(session.getId());
             } catch (Exception ex) {
                 log.error("Failed to auto-expire session {}", session.getId(), ex);
             }

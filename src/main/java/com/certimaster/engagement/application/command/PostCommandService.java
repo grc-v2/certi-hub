@@ -82,7 +82,15 @@ public class PostCommandService {
     public PostResponse publishPost(PublishPostCommand command) {
         Post post = findPostById(command.id());
         checkPostOwnership(post, command.userId());
+        return doPublish(post);
+    }
 
+    /** Admin moderation: publish any post regardless of authorship. */
+    public PostResponse adminPublishPost(Long id) {
+        return doPublish(findPostById(id));
+    }
+
+    private PostResponse doPublish(Post post) {
         if (post.getStatus() == PostStatus.PUBLISHED) {
             throw BusinessException.operationFailed("Post is already published");
         }
@@ -120,7 +128,15 @@ public class PostCommandService {
     public PostResponse archivePost(ArchivePostCommand command) {
         Post post = findPostById(command.id());
         checkPostOwnership(post, command.userId());
+        return doArchive(post);
+    }
 
+    /** Admin moderation: archive any post regardless of authorship. */
+    public PostResponse adminArchivePost(Long id) {
+        return doArchive(findPostById(id));
+    }
+
+    private PostResponse doArchive(Post post) {
         post.setStatus(PostStatus.ARCHIVED);
 
         Post saved = postRepository.save(post);
@@ -132,6 +148,11 @@ public class PostCommandService {
         checkPostOwnership(post, command.userId());
 
         postRepository.delete(post);
+    }
+
+    /** Admin moderation: delete any post regardless of authorship. */
+    public void adminDeletePost(Long id) {
+        postRepository.delete(findPostById(id));
     }
 
     public PostResponse submitForReview(SubmitPostForReviewCommand command) {

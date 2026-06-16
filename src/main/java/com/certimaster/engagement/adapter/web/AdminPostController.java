@@ -9,6 +9,7 @@ import com.certimaster.engagement.application.command.PostCommandService;
 import com.certimaster.engagement.application.query.PostQueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,5 +69,21 @@ public class AdminPostController {
             @PathVariable Long id,
             @RequestParam(defaultValue = "true") boolean pinned) {
         return ResponseEntity.ok(postCommandService.pinPost(new PinPostCommand(id, pinned)));
+    }
+
+    @PostMapping("/{id}/publish")
+    public ResponseEntity<PostResponse> publishPost(@PathVariable Long id) {
+        return ResponseEntity.ok(postCommandService.adminPublishPost(id));
+    }
+
+    @PostMapping("/{id}/archive")
+    public ResponseEntity<PostResponse> archivePost(@PathVariable Long id) {
+        return ResponseEntity.ok(postCommandService.adminArchivePost(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+        postCommandService.adminDeletePost(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,13 +1,16 @@
 package com.certimaster.learning.application.command;
 
 import com.certimaster.learning.adapter.web.response.ExamResultResponse;
+import com.certimaster.learning.domain.entity.Exam;
 import com.certimaster.learning.domain.entity.ExamResult;
+import com.certimaster.learning.domain.entity.Question;
 import com.certimaster.learning.domain.entity.QuestionResult;
 import com.certimaster.learning.domain.entity.TopicPerformance;
+import com.certimaster.learning.domain.entity.UserAnswer;
+import com.certimaster.learning.domain.entity.UserExamSession;
 import com.certimaster.learning.adapter.persistence.ExamResultWriteRepository;
 import com.certimaster.learning.adapter.persistence.QuestionResultRepository;
 import com.certimaster.learning.adapter.persistence.TopicPerformanceRepository;
-import com.certimaster.learning.domain.event.ExamCompletedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,7 +25,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Processes completed exam events and persists detailed result records.
+ * Internal collaborator of {@link ExamSessionFinalizer}: turns a finished
+ * {@code UserExamSession} and its answers into the persisted {@code ExamResult},
+ * {@code TopicPerformance} and {@code QuestionResult} records, and the result response.
+ *
+ * <p>Reads domain entities directly — it is deliberately decoupled from the externalized
+ * {@code ExamCompletedEvent}, which is a wire shape built only at the publication seam.
+ * Idempotent: a session that already has a result returns the stored one.
  */
 @Service
 public class ExamResultProcessingService {
@@ -42,18 +51,21 @@ public class ExamResultProcessingService {
     }
 
     @Transactional
-    public ExamResultResponse processCompletedExam(ExamCompletedEvent event) {
+    public ExamResultResponse processCompletedExam(UserExamSession session,
+                                                   List<UserAnswer> answers,
+                                                   LocalDateTime endTime) {
+        Long sessionId = session.getId();
         try {
-            var existingResult = examResultRepository.findBySessionId(event.getSessionId());
+            var existingResult = examResultRepository.findBySessionId(sessionId);
             if (existingResult.isPresent()) {
-                log.warn("Result already exists for session {}, returning existing result",
-                        event.getSessionId());
+                log.warn("Result already exists for session {}, returning existing result", sessionId);
                 return buildResponseFromExistingResult(existingResult.get());
             }
 
-            int totalQuestions = event.getTotalQuestions() != null ? event.getTotalQuestions() : 0;
-            int correctCount = event.getCorrectCount() != null ? event.getCorrectCount() : 0;
-            int wrongCount = event.getWrongCount() != null ? event.getWrongCount() : 0;
+            Exam exam = session.getExam();
+            int totalQuestions = session.getTotalQuestions() != null ? session.getTotalQuestions() : 0;
+            int correctCount = session.getCorrectCount() != null ? session.getCorrectCount() : 0;
+            int wrongCount = session.getWrongCount() != null ? session.getWrongCount() : 0;
             int unanswered = totalQuestions - (correctCount + wrongCount);
 
             BigDecimal percentage = BigDecimal.ZERO;
@@ -63,19 +75,22 @@ public class ExamResultProcessingService {
                         .divide(BigDecimal.valueOf(totalQuestions), 2, RoundingMode.HALF_UP);
             }
 
-            int passingScore = event.getPassingScore() != null ? event.getPassingScore() : 70;
+            int passingScore = exam != null && exam.getPassingScore() != null ? exam.getPassingScore() : 70;
             String passStatus = percentage.compareTo(BigDecimal.valueOf(passingScore)) >= 0 ? "PASSED" : "FAILED";
 
-            Integer timeTakenSeconds = event.getTimeSpentSeconds();
-            if (timeTakenSeconds == null && event.getStartTime() != null && event.getEndTime() != null) {
-                timeTakenSeconds = (int) java.time.Duration.between(event.getStartTime(), event.getEndTime()).getSeconds();
+            Integer timeTakenSeconds = session.getTimeSpentSeconds();
+            if (timeTakenSeconds == null && session.getStartTime() != null && endTime != null) {
+                timeTakenSeconds = (int) java.time.Duration.between(session.getStartTime(), endTime).getSeconds();
             }
 
+            Long certificationId = session.getCertification() != null ? session.getCertification().getId() : null;
+            LocalDateTime completedAt = endTime != null ? endTime : LocalDateTime.now();
+
             ExamResult examResult = ExamResult.builder()
-                    .sessionId(event.getSessionId())
-                    .userId(event.getUserId())
-                    .examId(event.getExamId())
-                    .certificationId(event.getCertificationId())
+                    .sessionId(sessionId)
+                    .userId(session.getUserId())
+                    .examId(exam != null ? exam.getId() : null)
+                    .certificationId(certificationId)
                     .totalQuestions(totalQuestions)
                     .correctAnswers(correctCount)
                     .wrongAnswers(wrongCount)
@@ -84,24 +99,24 @@ public class ExamResultProcessingService {
                     .percentage(percentage)
                     .passStatus(passStatus)
                     .passingScore(passingScore)
-                    .mode(event.getMode())
+                    .mode(session.getMode())
                     .timeTakenSeconds(timeTakenSeconds)
-                    .completedAt(event.getEndTime() != null ? event.getEndTime() : LocalDateTime.now())
+                    .completedAt(completedAt)
                     .build();
 
             examResult = examResultRepository.save(examResult);
             List<ExamResultResponse.TopicPerformanceData> topicPerformanceDataList =
-                    calculateAndSaveTopicPerformances(examResult, event.getAnswers());
+                    calculateAndSaveTopicPerformances(examResult, answers);
 
             List<ExamResultResponse.QuestionResultData> questionResultDataList =
-                    createAndSaveQuestionResults(examResult, event.getAnswers());
+                    createAndSaveQuestionResults(examResult, answers);
 
             return ExamResultResponse.builder()
                     .resultId(examResult.getId())
-                    .sessionId(event.getSessionId())
-                    .userId(event.getUserId())
-                    .examId(event.getExamId())
-                    .examTitle(event.getExamTitle())
+                    .sessionId(sessionId)
+                    .userId(session.getUserId())
+                    .examId(exam != null ? exam.getId() : null)
+                    .examTitle(session.getExamTitle())
                     .totalQuestions(totalQuestions)
                     .correctAnswers(correctCount)
                     .wrongAnswers(wrongCount)
@@ -109,7 +124,7 @@ public class ExamResultProcessingService {
                     .score(BigDecimal.valueOf(correctCount))
                     .percentage(percentage)
                     .passStatus(passStatus)
-                    .mode(event.getMode())
+                    .mode(session.getMode())
                     .passingScore(passingScore)
                     .timeTakenSeconds(timeTakenSeconds)
                     .completedAt(examResult.getCompletedAt())
@@ -119,8 +134,8 @@ public class ExamResultProcessingService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Failed to process completed exam for session {}", event.getSessionId(), e);
-            throw new IllegalStateException("Failed to calculate results for session " + event.getSessionId(), e);
+            log.error("Failed to process completed exam for session {}", sessionId, e);
+            throw new IllegalStateException("Failed to calculate results for session " + sessionId, e);
         }
     }
 
@@ -128,22 +143,22 @@ public class ExamResultProcessingService {
      * Calculate topic-wise performance and save TopicPerformance records.
      */
     private List<ExamResultResponse.TopicPerformanceData> calculateAndSaveTopicPerformances(
-            ExamResult examResult, List<ExamCompletedEvent.UserAnswerData> answers) {
+            ExamResult examResult, List<UserAnswer> answers) {
 
         if (answers == null || answers.isEmpty()) {
             return new ArrayList<>();
         }
 
-        Map<Long, List<ExamCompletedEvent.UserAnswerData>> answersByTopic = answers.stream()
-                .filter(a -> a.getTopicId() != null)
-                .collect(Collectors.groupingBy(ExamCompletedEvent.UserAnswerData::getTopicId));
+        Map<Long, List<UserAnswer>> answersByTopic = answers.stream()
+                .filter(a -> topicIdOf(a) != null)
+                .collect(Collectors.groupingBy(ExamResultProcessingService::topicIdOf));
 
         List<ExamResultResponse.TopicPerformanceData> topicPerformanceDataList = new ArrayList<>();
         List<TopicPerformance> topicPerformanceEntities = new ArrayList<>();
 
-        for (Map.Entry<Long, List<ExamCompletedEvent.UserAnswerData>> entry : answersByTopic.entrySet()) {
+        for (Map.Entry<Long, List<UserAnswer>> entry : answersByTopic.entrySet()) {
             Long topicId = entry.getKey();
-            List<ExamCompletedEvent.UserAnswerData> topicAnswers = entry.getValue();
+            List<UserAnswer> topicAnswers = entry.getValue();
 
             int totalInTopic = topicAnswers.size();
             int correctInTopic = (int) topicAnswers.stream()
@@ -157,7 +172,7 @@ public class ExamResultProcessingService {
                         .divide(BigDecimal.valueOf(totalInTopic), 2, RoundingMode.HALF_UP);
             }
 
-            String topicName = topicAnswers.getFirst().getTopicName();
+            String topicName = topicNameOf(topicAnswers.getFirst());
 
             topicPerformanceEntities.add(TopicPerformance.builder()
                     .examResult(examResult)
@@ -185,7 +200,7 @@ public class ExamResultProcessingService {
      * Create QuestionResult records for each answer.
      */
     private List<ExamResultResponse.QuestionResultData> createAndSaveQuestionResults(
-            ExamResult examResult, List<ExamCompletedEvent.UserAnswerData> answers) {
+            ExamResult examResult, List<UserAnswer> answers) {
 
         if (answers == null || answers.isEmpty()) {
             return new ArrayList<>();
@@ -194,37 +209,50 @@ public class ExamResultProcessingService {
         List<ExamResultResponse.QuestionResultData> questionResultDataList = new ArrayList<>();
         List<QuestionResult> questionResultEntities = new ArrayList<>();
 
-        for (ExamCompletedEvent.UserAnswerData answer : answers) {
+        for (UserAnswer answer : answers) {
+            Question question = answer.getQuestion();
+            String reference = question.getReferenceUrl();
+
             questionResultEntities.add(QuestionResult.builder()
                     .examResult(examResult)
-                    .questionId(answer.getQuestionId())
-                    .topicId(answer.getTopicId())
-                    .topicName(answer.getTopicName())
-                    .difficulty(answer.getDifficulty())
-                    .questionContent(answer.getQuestionText())
+                    .questionId(question.getId())
+                    .topicId(topicIdOf(answer))
+                    .topicName(topicNameOf(answer))
+                    .difficulty(question.getDifficulty())
+                    .questionContent(question.getContent())
                     .userAnswerIds(answer.getSelectedOptionIds())
                     .correctAnswerIds(answer.getCorrectOptionIds())
                     .isCorrect(answer.getIsCorrect())
                     .timeSpentSeconds(answer.getTimeSpentSeconds())
-                    .explanation(answer.getExplanation())
-                    .referenceLinks(answer.getReference())
+                    .explanation(question.getExplanation())
+                    .referenceLinks(reference)
                     .wasFlagged(Boolean.TRUE.equals(answer.getIsFlagged()))
                     .build());
 
             questionResultDataList.add(ExamResultResponse.QuestionResultData.builder()
-                    .questionId(answer.getQuestionId())
-                    .questionText(answer.getQuestionText())
+                    .questionId(question.getId())
+                    .questionText(question.getContent())
                     .userAnswerIds(answer.getSelectedOptionIds())
                     .correctAnswerIds(answer.getCorrectOptionIds())
                     .isCorrect(answer.getIsCorrect())
                     .timeSpentSeconds(answer.getTimeSpentSeconds())
-                    .explanation(answer.getExplanation())
-                    .reference(answer.getReference())
+                    .explanation(question.getExplanation())
+                    .reference(reference)
                     .build());
         }
 
         questionResultRepository.saveAll(questionResultEntities);
         return questionResultDataList;
+    }
+
+    private static Long topicIdOf(UserAnswer answer) {
+        Question question = answer.getQuestion();
+        return question.getDomain() != null ? question.getDomain().getId() : null;
+    }
+
+    private static String topicNameOf(UserAnswer answer) {
+        Question question = answer.getQuestion();
+        return question.getDomain() != null ? question.getDomain().getName() : null;
     }
 
     /**

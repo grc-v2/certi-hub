@@ -3,12 +3,5 @@ spring:
     activate:
       on-profile: dev
 
-  datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:certimaster}
-
-  jpa:
-    show-sql: ${JPA_SHOW_SQL:false}
-
-logging:
-  level:
-    com.certimaster: ${LOG_LEVEL_CERTIMASTER:DEBUG}
+bootui:
+  enabled: ON
