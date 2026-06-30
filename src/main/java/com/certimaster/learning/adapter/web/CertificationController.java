@@ -59,6 +59,12 @@ public class CertificationController {
         return ResponseEntity.ok(certificationQueryService.search(query));
     }
 
+    @GetMapping("/options")
+    public ResponseEntity<List<com.certimaster.learning.adapter.web.response.CertificationOptionResponse>> getOptions(
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return ResponseEntity.ok(certificationQueryService.getOptions(includeInactive));
+    }
+
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<CertificationDetailResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(certificationQueryService.getById(new GetCertificationByIdQuery(id)));

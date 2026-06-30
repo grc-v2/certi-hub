@@ -166,6 +166,11 @@ public class LearningLookupService {
     }
 
     private String toLabel(String value) {
+        String defaultLabel = toDefaultLabel(value);
+        return com.certimaster.shared.utils.LookupTranslator.translate(value, defaultLabel);
+    }
+
+    private String toDefaultLabel(String value) {
         String[] parts = value.toLowerCase().split("_");
         StringBuilder label = new StringBuilder();
         for (String part : parts) {

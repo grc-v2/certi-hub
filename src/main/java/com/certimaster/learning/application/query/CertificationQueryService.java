@@ -67,6 +67,13 @@ public class CertificationQueryService {
         return PageResponse.of(responsePage);
     }
 
+    @Cacheable("certification-options")
+    public List<com.certimaster.learning.adapter.web.response.CertificationOptionResponse> getOptions(boolean includeInactive) {
+        return certificationRepository.findLookupOptions(includeInactive).stream()
+                .map(proj -> new com.certimaster.learning.adapter.web.response.CertificationOptionResponse(proj.getId(), proj.getName()))
+                .toList();
+    }
+
     @Cacheable(value = "certification-detail", key = "#query.slug()")
     public CertificationDetailResponse getBySlug(GetCertificationBySlugQuery query) {
         Certification certification = certificationRepository.findActiveBySlug(query.slug())
