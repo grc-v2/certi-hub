@@ -1,7 +1,5 @@
 package com.certimaster.identity.domain.event;
 
-import org.springframework.modulith.events.Externalized;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -11,7 +9,6 @@ import java.util.UUID;
  * Event published when a user requests (or re-requests) email verification.
  * Sent from identity-service.
  */
-@Externalized("email-verification-requested::#{getUserId()}")
 public class EmailVerificationRequestedEvent implements Serializable {
 
     @Serial

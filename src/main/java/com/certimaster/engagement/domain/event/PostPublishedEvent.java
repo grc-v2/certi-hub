@@ -1,12 +1,9 @@
 package com.certimaster.engagement.domain.event;
 
-import org.springframework.modulith.events.Externalized;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Externalized("post-published::#{getPostId()}")
 public class PostPublishedEvent {
 
     private String eventId = UUID.randomUUID().toString();

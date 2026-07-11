@@ -1,7 +1,5 @@
 package com.certimaster.identity.domain.event;
 
-import org.springframework.modulith.events.Externalized;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -12,7 +10,6 @@ import java.util.UUID;
  * Sent from identity-service. Consumed by notification-service to deliver
  * a welcome email / in-app notification.
  */
-@Externalized("user-registered::#{getUserId()}")
 public class UserRegisteredEvent implements Serializable {
 
     @Serial
