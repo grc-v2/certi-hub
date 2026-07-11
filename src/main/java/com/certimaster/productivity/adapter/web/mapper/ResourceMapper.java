@@ -23,6 +23,7 @@ public class ResourceMapper {
                 .title(r.getTitle())
                 .content(r.getContent())
                 .collectionId(r.getCollectionId())
+                .certificationId(r.getCertificationId())
                 .build();
     }
 }

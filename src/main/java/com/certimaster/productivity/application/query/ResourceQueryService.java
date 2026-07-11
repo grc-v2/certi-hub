@@ -26,6 +26,7 @@ public class ResourceQueryService {
                 .stream()
                 .filter(r -> query.kind() == null || r.getKind() == query.kind())
                 .filter(r -> query.collectionId() == null || query.collectionId().equals(r.getCollectionId()))
+                .filter(r -> query.certificationId() == null || query.certificationId().equals(r.getCertificationId()))
                 .map(resourceMapper::toResponse)
                 .toList();
     }

@@ -12,6 +12,7 @@ public class CreateResourceRequest {
     private String content;
     private String kind;
     private Long collectionId;
+    private Long certificationId;
 
     public CreateResourceRequest() {
     }
@@ -30,4 +31,7 @@ public class CreateResourceRequest {
 
     public Long getCollectionId() { return collectionId; }
     public void setCollectionId(Long collectionId) { this.collectionId = collectionId; }
+
+    public Long getCertificationId() { return certificationId; }
+    public void setCertificationId(Long certificationId) { this.certificationId = certificationId; }
 }

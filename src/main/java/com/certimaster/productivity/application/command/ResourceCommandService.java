@@ -6,6 +6,7 @@ import com.certimaster.productivity.adapter.web.mapper.ResourceMapper;
 import com.certimaster.productivity.adapter.web.response.ResourceResponse;
 import com.certimaster.productivity.domain.entity.ResourceKind;
 import com.certimaster.productivity.domain.entity.TrackerResource;
+import com.certimaster.learning.application.lookup.CertificationRefLookup;
 import com.certimaster.productivity.domain.service.ResourceFileStorageService;
 import com.certimaster.productivity.domain.service.ResourceKindDetector;
 import com.certimaster.shared.exception.ResourceNotFoundException;
@@ -25,19 +26,24 @@ public class ResourceCommandService {
     private final WebPageTitleFetcher titleFetcher;
     private final ResourceMapper resourceMapper;
     private final ResourceFileStorageService fileStorage;
+    private final CertificationRefLookup certificationLookup;
 
     public ResourceCommandService(TrackerResourceRepository resourceRepository,
                                   WebPageTitleFetcher titleFetcher,
                                   ResourceMapper resourceMapper,
-                                  ResourceFileStorageService fileStorage) {
+                                  ResourceFileStorageService fileStorage,
+                                  CertificationRefLookup certificationLookup) {
         this.resourceRepository = resourceRepository;
         this.titleFetcher = titleFetcher;
         this.resourceMapper = resourceMapper;
         this.fileStorage = fileStorage;
+        this.certificationLookup = certificationLookup;
     }
 
     /** Upload a PDF/ebook and store it as a {@code PDF} resource (url = object key). */
-    public ResourceResponse createPdf(Long userId, MultipartFile file, String title, Long collectionId) {
+    public ResourceResponse createPdf(Long userId, MultipartFile file, String title, Long collectionId,
+                                      Long certificationId) {
+        requireCertificationExists(certificationId);
         String objectKey = fileStorage.uploadPdf(userId, file);
         String resolvedTitle = trimToNull(title);
         if (resolvedTitle == null) {
@@ -49,6 +55,7 @@ public class ResourceCommandService {
                 .url(objectKey)
                 .title(resolvedTitle)
                 .collectionId(collectionId)
+                .certificationId(certificationId)
                 .build();
         return resourceMapper.toResponse(resourceRepository.save(resource));
     }
@@ -65,6 +72,7 @@ public class ResourceCommandService {
     }
 
     public ResourceResponse create(CreateResourceCommand command) {
+        requireCertificationExists(command.certificationId());
         String url = trimToNull(command.url());
         String title = trimToNull(command.title());
         ResourceKind kind;
@@ -90,6 +98,7 @@ public class ResourceCommandService {
                 .title(title)
                 .content(command.content())
                 .collectionId(command.collectionId())
+                .certificationId(command.certificationId())
                 .build();
 
         return resourceMapper.toResponse(resourceRepository.save(resource));
@@ -99,6 +108,15 @@ public class ResourceCommandService {
         TrackerResource resource = resourceRepository.findByIdAndUserId(command.resourceId(), command.userId())
                 .orElseThrow(() -> ResourceNotFoundException.byId("Resource", command.resourceId()));
         resource.setCollectionId(command.collectionId());
+        return resourceMapper.toResponse(resource);
+    }
+
+    /** Attach the resource to a certification, or detach it when the id is null. */
+    public ResourceResponse setCertification(SetResourceCertificationCommand command) {
+        TrackerResource resource = resourceRepository.findByIdAndUserId(command.resourceId(), command.userId())
+                .orElseThrow(() -> ResourceNotFoundException.byId("Resource", command.resourceId()));
+        requireCertificationExists(command.certificationId());
+        resource.setCertificationId(command.certificationId());
         return resourceMapper.toResponse(resource);
     }
 
@@ -135,6 +153,16 @@ public class ResourceCommandService {
             fileStorage.delete(resource.getUrl());
         }
         resourceRepository.delete(resource);
+    }
+
+    /**
+     * A non-null certification reference must point at an existing, non-deleted
+     * certification in the learning module (checked via its public lookup API).
+     */
+    private void requireCertificationExists(Long certificationId) {
+        if (certificationId != null && !certificationLookup.existsActiveById(certificationId)) {
+            throw ResourceNotFoundException.byId("Certification", certificationId);
+        }
     }
 
     private String deriveFileTitle(String filename) {

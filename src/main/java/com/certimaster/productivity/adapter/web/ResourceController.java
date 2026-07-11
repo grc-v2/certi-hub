@@ -1,12 +1,14 @@
 package com.certimaster.productivity.adapter.web;
 
 import com.certimaster.productivity.adapter.web.request.CreateResourceRequest;
+import com.certimaster.productivity.adapter.web.request.SetResourceCertificationRequest;
 import com.certimaster.productivity.adapter.web.request.SetResourceCollectionRequest;
 import com.certimaster.productivity.adapter.web.request.UpdateResourceRequest;
 import com.certimaster.productivity.adapter.web.response.ResourceResponse;
 import com.certimaster.productivity.application.command.CreateResourceCommand;
 import com.certimaster.productivity.application.command.DeleteResourceCommand;
 import com.certimaster.productivity.application.command.ResourceCommandService;
+import com.certimaster.productivity.application.command.SetResourceCertificationCommand;
 import com.certimaster.productivity.application.command.SetResourceCollectionCommand;
 import com.certimaster.productivity.application.command.UpdateResourceCommand;
 import com.certimaster.productivity.application.query.ListResourcesQuery;
@@ -46,9 +48,11 @@ public class ResourceController {
     @GetMapping
     public ResponseEntity<List<ResourceResponse>> list(
             @RequestParam(required = false) String kind,
-            @RequestParam(required = false) Long collectionId) {
+            @RequestParam(required = false) Long collectionId,
+            @RequestParam(required = false) Long certificationId) {
         Long userId = SecurityUtils.getCurrentUserId();
-        return ResponseEntity.ok(resourceQueryService.list(new ListResourcesQuery(userId, parseKind(kind), collectionId)));
+        return ResponseEntity.ok(resourceQueryService.list(
+                new ListResourcesQuery(userId, parseKind(kind), collectionId, certificationId)));
     }
 
     @PostMapping
@@ -60,7 +64,8 @@ public class ResourceController {
                 request.getTitle(),
                 request.getContent(),
                 parseKind(request.getKind()),
-                request.getCollectionId()));
+                request.getCollectionId(),
+                request.getCertificationId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -68,9 +73,10 @@ public class ResourceController {
     public ResponseEntity<ResourceResponse> upload(
             @RequestPart("file") MultipartFile file,
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) Long collectionId) {
+            @RequestParam(required = false) Long collectionId,
+            @RequestParam(required = false) Long certificationId) {
         Long userId = SecurityUtils.getCurrentUserId();
-        ResourceResponse created = resourceCommandService.createPdf(userId, file, title, collectionId);
+        ResourceResponse created = resourceCommandService.createPdf(userId, file, title, collectionId, certificationId);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -99,6 +105,14 @@ public class ResourceController {
         Long userId = SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(resourceCommandService.setCollection(
                 new SetResourceCollectionCommand(id, userId, request.getCollectionId())));
+    }
+
+    @PatchMapping("/{id}/certification")
+    public ResponseEntity<ResourceResponse> setCertification(@PathVariable Long id,
+                                                             @RequestBody SetResourceCertificationRequest request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(resourceCommandService.setCertification(
+                new SetResourceCertificationCommand(id, userId, request.getCertificationId())));
     }
 
     @DeleteMapping("/{id}")

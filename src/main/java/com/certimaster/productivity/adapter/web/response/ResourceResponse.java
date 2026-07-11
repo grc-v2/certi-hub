@@ -12,6 +12,7 @@ public class ResourceResponse extends BaseResponse {
     private String title;
     private String content;
     private Long collectionId;
+    private Long certificationId;
 
     public ResourceResponse() {
         super();
@@ -35,6 +36,9 @@ public class ResourceResponse extends BaseResponse {
     public Long getCollectionId() { return collectionId; }
     public void setCollectionId(Long collectionId) { this.collectionId = collectionId; }
 
+    public Long getCertificationId() { return certificationId; }
+    public void setCertificationId(Long certificationId) { this.certificationId = certificationId; }
+
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {
@@ -49,6 +53,7 @@ public class ResourceResponse extends BaseResponse {
         private String title;
         private String content;
         private Long collectionId;
+        private Long certificationId;
 
         public Builder id(Long v) { this.id = v; return this; }
         public Builder createdAt(LocalDateTime v) { this.createdAt = v; return this; }
@@ -61,6 +66,7 @@ public class ResourceResponse extends BaseResponse {
         public Builder title(String v) { this.title = v; return this; }
         public Builder content(String v) { this.content = v; return this; }
         public Builder collectionId(Long v) { this.collectionId = v; return this; }
+        public Builder certificationId(Long v) { this.certificationId = v; return this; }
 
         public ResourceResponse build() {
             ResourceResponse o = new ResourceResponse();
@@ -75,6 +81,7 @@ public class ResourceResponse extends BaseResponse {
             o.title = this.title;
             o.content = this.content;
             o.collectionId = this.collectionId;
+            o.certificationId = this.certificationId;
             return o;
         }
     }
