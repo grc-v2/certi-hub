@@ -28,7 +28,7 @@ spring:
         default_batch_fetch_size: 25
 
   flyway:
-    enabled: ${FLYWAY_ENABLED:false}
+    enabled: ${FLYWAY_ENABLED:true}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
     locations: classpath:db/migration
 
@@ -38,6 +38,21 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:redis123}
       timeout: 2000ms
+
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
+          connectiontimeout: ${MAIL_SMTP_CONNECTION_TIMEOUT_MS:5000}
+          timeout: ${MAIL_SMTP_TIMEOUT_MS:5000}
+          writetimeout: ${MAIL_SMTP_WRITE_TIMEOUT_MS:5000}
 
   modulith:
     events:
@@ -124,6 +139,10 @@ springdoc:
 app:
   domain: ${APP_DOMAIN:certimaster}
   service: ${APP_SERVICE:certimaster}
+  mail:
+    enabled: ${APP_MAIL_ENABLED:true}
+    from: ${APP_MAIL_FROM:no-reply@certimaster.com}
+    frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
   exception:
     include-stack-trace: ${APP_EXCEPTION_INCLUDE_STACK_TRACE:false}
     log-stack-trace: ${APP_EXCEPTION_LOG_STACK_TRACE:true}
