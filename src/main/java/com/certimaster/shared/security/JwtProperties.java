@@ -36,6 +36,13 @@ public class JwtProperties {
      */
     private String issuer = "certimaster-auth";
 
+    /**
+     * When true and no keypair is configured, generate an ephemeral RSA keypair
+     * at startup (development only — tokens are invalidated on every restart).
+     * When false (default), the application fails fast if keys are missing.
+     */
+    private boolean generateDevKeys = false;
+
     public String getPrivateKey() {
         return privateKey;
     }
@@ -74,5 +81,13 @@ public class JwtProperties {
 
     public void setIssuer(String issuer) {
         this.issuer = issuer;
+    }
+
+    public boolean isGenerateDevKeys() {
+        return generateDevKeys;
+    }
+
+    public void setGenerateDevKeys(boolean generateDevKeys) {
+        this.generateDevKeys = generateDevKeys;
     }
 }

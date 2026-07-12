@@ -67,6 +67,8 @@ class SchemaMigrationIntegrationTest {
         registry.add("spring.datasource.password", () -> PASSWORD);
         registry.add("spring.flyway.enabled", () -> "true");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+        // No JWT keypair is shipped in the repo; boot with an ephemeral one.
+        registry.add("jwt.generate-dev-keys", () -> "true");
         // Keep the test hermetic: don't talk to local Redis/SMTP from scheduled jobs.
         registry.add("app.mail.enabled", () -> "false");
         registry.add("auth.session.cleanup.enabled", () -> "false");

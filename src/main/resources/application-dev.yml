@@ -5,3 +5,10 @@ spring:
 
 bootui:
   enabled: ON
+
+jwt:
+  # Local development convenience: boot with an ephemeral RSA keypair when
+  # JWT_PRIVATE_KEY / JWT_PUBLIC_KEY are not set. Tokens are invalidated on
+  # every restart. Generate a persistent dev keypair (docs/setup.md) to keep
+  # sessions across restarts.
+  generate-dev-keys: ${JWT_GENERATE_DEV_KEYS:true}
