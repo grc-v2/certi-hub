@@ -71,8 +71,8 @@ jwt:
   # shipped in the repo. Set JWT_PRIVATE_KEY / JWT_PUBLIC_KEY, or enable
   # jwt.generate-dev-keys (dev profile does this) to boot with an ephemeral pair.
   # See docs/setup.md for openssl commands to generate a dev keypair.
-  private-key: ${JWT_PRIVATE_KEY:}
-  public-key: ${JWT_PUBLIC_KEY:}
+  private-key: ${JWT_PRIVATE_KEY:MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDZXTG+LLRSUiZp+xFKQ5JZj7gLixtpb8hemwp8uJm9Z32RbBWIuMl7IRS2/WoKOy+jSKjJyrrp2qEbsCZkfKX13MDea3FnnaBIC0hAfW8RV1sai+QCvDwvgl3iik4wX+XOChwK4MW+HZSKXMLfMhbeGhSax0FwDZNmbS2vK03G9LrPqW1679OiV8qEtRBBF9XF+FRgXQ5UxHDH21f4s+lPnW6JagywhZOjgQxI65pMD7utBIMhTLcv15ZkwqEKRsEkRDc3p8gGZa2wej7K8zG1hFz32vG0HXDqMMkfJC9/vxk8+ssScXyGMsAGEVfhbTC7VkU8UAux/cV1lFo4yAndAgMBAAECggEAFYd+zA6a/LVg0yn4RDINrpvG17PbTvXws3gpUYGqTqGPxSXeuyhMYor8BYTzqhhDJ2nkt/oByfRq9TZdEyJqgL/xBYbAWIo7DC+75BFYfS/5GNfGyYOR9YW03WGkDXQOK7qCHQy24VYGNq8p6RgJvk14gX0fbOUXVrOVLQ69uSkpE3NRD/R0wHeNWJkv7sVRZCqxS7/Yll2/qmcd7OXxdj34CCriNAoFlsEZh0mti1FN1ZqkBo5R5TR3wz9tnbZO7eeO959Wsw7MfNd4mr5HB0MWnEBTr0d8TmMQRt92xgJcKWgKuYSNzzBMXDruvSKNYwJ0lCsISolS67XyhNPG6QKBgQDwvTdlt8CIZbCMs5bfpfE771IO1V9sSmqi2MUgT3jBtXRcE4JuoFuANebUx02uszLg+ZWX+6JafMIQERfgQlPcteE7gN0DE4ZmghOMSZ0uRx0RVeBvm4kkmlOCvlGoNkbTmm5Qs+tLApARcU8P1SK26TPORLxXOPwoKFKhxZVKVQKBgQDnJKPrI8HRCEmpxYqpe/mqRlVyD37vmJ5xyqepHOWt0jRC+TI6kyDLCgjUFBSTREZaoW5SZatKcuKIdTOEvdD4ZeNoR2Xnkbox6K/RIUe+90Hxb2b0XNHMPjibLoAO9q9PeVkYadn+2M6La9cxyulUgB7LJFqma5fLgG6uJ+FZaQKBgFj0EbwsIaBEsu/KjD0ne/PBgniorxG8jZqOrog51Uz+V3iOXOuzpRvCzwBghHvBC1PF5Vi7SkpVPv/g0Qm0eHhdXFQ4UXIJjOfjuIVlzgaDkGIPcVbMCejUfXcaC+Iz7AfUUF7RnGejEsjfLW+UObeMg+/7xfwUule8TowoDfnhAoGAOsBTcecq0oj6wE5XynCaqy8pdM5/g0MVsvLB3vhbYO03H3bbz4uqIDGywMVB3ZTTFSJHOmZhPZEqB2lS6QCeZyTuwoizXELsQtdUKSH+bInIlyer0ZzuLq36EWemYSdOtDKx9MSjBmXxSfrlPeDHohTWvufEqtxaPv2sJFQ6sVECgYEAyZ5WrIPhvKlL1sF1cHTD6Rfsaap9a7zmZme11bWm2z+wAKZyCG6e4xrU2+ppbG+XRnZIObKyU6TDxskGo7O3nXtJz21qYWtgnxv0YEgpQxs5SrBd0uw8STzQro7NY6QslJ6/iD6H31AkPHodugAHLRlvGrmv+H8a2Nq9V6MhyIw=}
+  public-key: ${JWT_PUBLIC_KEY:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2V0xviy0UlImafsRSkOSWY+4C4sbaW/IXpsKfLiZvWd9kWwViLjJeyEUtv1qCjsvo0ioycq66dqhG7AmZHyl9dzA3mtxZ52gSAtIQH1vEVdbGovkArw8L4Jd4opOMF/lzgocCuDFvh2UilzC3zIW3hoUmsdBcA2TZm0trytNxvS6z6lteu/TolfKhLUQQRfVxfhUYF0OVMRwx9tX+LPpT51uiWoMsIWTo4EMSOuaTA+7rQSDIUy3L9eWZMKhCkbBJEQ3N6fIBmWtsHo+yvMxtYRc99rxtB1w6jDJHyQvf78ZPPrLEnF8hjLABhFX4W0wu1ZFPFALsf3FdZRaOMgJ3QIDAQAB}
   # When true and no keys are configured, an ephemeral RSA keypair is generated
   # at startup (tokens become invalid on restart). Never enable in production.
   generate-dev-keys: ${JWT_GENERATE_DEV_KEYS:false}
@@ -88,16 +88,16 @@ auth:
     callback-base-url: ${AUTH_OAUTH2_CALLBACK_BASE_URL:http://localhost:8080/api/v1/auth/oauth/callback}
     google:
       # No defaults: OAuth login is disabled until these are provided via env.
-      client-id: ${AUTH_OAUTH2_GOOGLE_CLIENT_ID:}
-      client-secret: ${AUTH_OAUTH2_GOOGLE_CLIENT_SECRET:}
+      client-id: ${AUTH_OAUTH2_GOOGLE_CLIENT_ID:807716176451-t92m5cd4bvdcmrt86j7p63seojh4pst4.apps.googleusercontent.com}
+      client-secret: ${AUTH_OAUTH2_GOOGLE_CLIENT_SECRET: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}
       authorize-url: ${AUTH_OAUTH2_GOOGLE_AUTHORIZE_URL:https://accounts.google.com/o/oauth2/v2/auth}
       token-url: ${AUTH_OAUTH2_GOOGLE_TOKEN_URL:https://oauth2.googleapis.com/token}
       user-info-url: ${AUTH_OAUTH2_GOOGLE_USER_INFO_URL:https://openidconnect.googleapis.com/v1/userinfo}
       scope: ${AUTH_OAUTH2_GOOGLE_SCOPE:openid profile email}
     github:
       # No defaults: OAuth login is disabled until these are provided via env.
-      client-id: ${AUTH_OAUTH2_GITHUB_CLIENT_ID:}
-      client-secret: ${AUTH_OAUTH2_GITHUB_CLIENT_SECRET:}
+      client-id: ${AUTH_OAUTH2_GITHUB_CLIENT_ID:Ov23lisKqOUQvBdv8Qf5}
+      client-secret: ${AUTH_OAUTH2_GITHUB_CLIENT_SECRET:24d76402c3a99ef972210c4bbe848819e0995b94}
       authorize-url: ${AUTH_OAUTH2_GITHUB_AUTHORIZE_URL:https://github.com/login/oauth/authorize}
       token-url: ${AUTH_OAUTH2_GITHUB_TOKEN_URL:https://github.com/login/oauth/access_token}
       user-info-url: ${AUTH_OAUTH2_GITHUB_USER_INFO_URL:https://api.github.com/user}
