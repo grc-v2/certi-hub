@@ -1,7 +1,5 @@
 package com.certimaster.learning.domain.event;
 
-import org.springframework.modulith.events.Externalized;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -11,9 +9,8 @@ import java.util.UUID;
 /**
  * Event published when a user completes an exam session.
  * Contains full session data and all user answers for result calculation.
- * Sent from exam-service to result-service via Kafka.
+ * Processed internally via ApplicationEvent.
  */
-@Externalized("exam-completed::#{getSessionId()}")
 public class ExamCompletedEvent implements Serializable {
 
     @Serial

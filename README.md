@@ -11,13 +11,14 @@ Backend Spring Boot Modulith của nền tảng CertiMaster. REST API cho fronte
 | Layer | Công nghệ |
 |---|---|
 | Runtime | Java 21, Spring Boot 4.0.6 |
-| Modularity | Spring Modulith 2.0.6 (4 module: `identity`, `learning`, `engagement`, `lookup` + `shared`) |
+| Modularity | Spring Modulith 2.0.6 (4 module: `identity`, `learning`, `engagement`, `productivity` + `shared`) |
 | Web | Spring Web MVC, Validation, RestClient |
 | Persistence | Spring Data JPA, Hibernate, PostgreSQL, Flyway |
 | Cache / Session | Spring Data Redis |
-| Messaging | Spring Kafka + Spring Modulith Events (Kafka) |
+| Messaging | Spring Modulith Events (in-process `ApplicationEvent`, không dùng broker ngoài) |
+| Mail | Spring Boot Mail (SMTP; dev dùng Mailpit) |
 | Security | Spring Security 6, OAuth2 Resource Server, JJWT 0.12.3 (RSA), BouncyCastle |
-| Storage | MinIO (avatar bucket) |
+| Storage | MinIO (avatar + resources bucket) |
 | Observability | Actuator, Micrometer Prometheus, OpenTelemetry (logs/metrics/traces) |
 | Testing | JUnit 5, Spring Modulith Test, Testcontainers |
 
@@ -28,10 +29,10 @@ Backend Spring Boot Modulith của nền tảng CertiMaster. REST API cho fronte
 ### Yêu cầu
 
 - JDK 21
-- PostgreSQL 15+ chạy tại `localhost:5433`, database `certimaster`
+- PostgreSQL 17 chạy tại `localhost:5433`, database `certimaster`
 - Redis 7+ tại `localhost:6379` (password `redis123` mặc định)
-- Kafka tại `localhost:29092` (cần cho event publishing)
-- MinIO tại `localhost:9000` (cần cho avatar upload)
+- MinIO tại `localhost:9000` (cần cho avatar + resource upload)
+- SMTP tại `localhost:1025` — dev dùng Mailpit (UI `localhost:8025`); mail có thể tắt bằng `APP_MAIL_ENABLED=false`
 
 > Cách dựng nhanh 4 dịch vụ trên bằng Docker Compose xem [docs/setup.md](../docs/setup.md).
 
@@ -66,14 +67,14 @@ docker build -t certi-master . # build image
 
 ```
 src/main/java/com/certimaster/
-├── identity/      # User, Role, Auth (JWT, OAuth2), Session, Email verification
-├── learning/      # Certification, Domain, Exam, Question, ExamSession, Course, Tag
-├── engagement/    # Community (Post, Comment, Vote, Bookmark), Notification
-├── lookup/        # Reference data lookup APIs
+├── identity/      # User, Role, Auth (JWT, OAuth2), Session, Email verification, mail adapter
+├── learning/      # Certification, Domain, Exam, Question, UserExamSession, ExamResult, Tag
+├── engagement/    # Blog (Post, Comment, Bookmark), Notification
+├── productivity/  # Todo, Pomodoro (settings + sessions), Habit, TrackerResource
 └── shared/        # Security, exception, advice, validation, constants, base entity
 ```
 
-Mỗi module có cấu trúc Hexagonal: `adapter/{web,persistence}` ↔ `application/{command,query}` ↔ `domain/{entity,service,event}`.
+Mỗi module có cấu trúc Hexagonal: `adapter/{web,persistence}` ↔ `application/{command,query}` ↔ `domain/{entity,service,event}`. `learning` expose named interface `lookup` cho `productivity` tra cứu certification (xem `package-info.java`).
 
 ---
 
@@ -81,14 +82,17 @@ Mỗi module có cấu trúc Hexagonal: `adapter/{web,persistence}` ↔ `applica
 
 Flyway scripts tại `src/main/resources/db/migration/`:
 
-| File | Module |
+| File | Nội dung |
 |---|---|
-| `V1__identity_schema.sql` | identity |
-| `V2__learning_schema.sql` | learning |
-| `V3__engagement_schema.sql` | engagement |
-| `V4__course_schema.sql` | course (within learning) |
+| `V1__identity_schema.sql` | identity (users, roles, tokens) + modulith `event_publication` |
+| `V2__learning_schema.sql` | learning (certification, exam, question, session, result) |
+| `V3__engagement_schema.sql` | engagement (post, tag, bookmark) |
+| `V4`–`V6` | course schema tạo rồi drop (LMS đã gỡ — xem ADR-0004) |
+| `V7`–`V9` | notification/comment, resource hub, habit |
+| `V10__pomodoro_sessions.sql` | pomodoro session history |
+| `V11__tracker_resource_certification.sql` | gắn resource vào certification |
 
-Bật Flyway bằng `FLYWAY_ENABLED=true` (mặc định `false` để tránh accident).
+Flyway bật mặc định (`FLYWAY_ENABLED=true`); toàn bộ schema tái tạo được từ V1–V11. DB cũ chưa có `flyway_schema_history` sẽ baseline ở version 1 rồi chạy V2+ (idempotent). `SchemaMigrationIntegrationTest` verify Hibernate `validate` khớp toàn bộ entity.
 
 ---
 
@@ -100,18 +104,18 @@ Tất cả config qua env var, fallback xem trong [`application.yml`](src/main/r
 |---|---|
 | `DB_*` | PostgreSQL connection + Hikari pool |
 | `REDIS_*` | Redis host/port/password |
-| `KAFKA_*` | Kafka bootstrap server |
-| `JWT_*` | RSA keypair, token TTL, issuer |
+| `JWT_*` | RSA keypair (bắt buộc — app fail-fast nếu thiếu), token TTL, issuer |
 | `AUTH_OAUTH2_*` | Google/GitHub OAuth client |
 | `AUTH_COOKIE_*` | Cookie security flags |
+| `MAIL_*` / `APP_MAIL_*` | SMTP host/port, from, frontend base URL, enable flag |
 | `MINIO_*` | MinIO endpoint + credentials |
 | `EXAM_SESSION_*` | Max concurrent session, auto-expire |
 | `CORS_*` | CORS allowed origins/methods/headers |
 | `OTEL_*` / `TRACING_*` | OpenTelemetry export |
 
-> Danh sách env var đầy đủ + giá trị mẫu xem [docs/setup.md](../docs/setup.md).
+> Danh sách env var đầy đủ + giá trị mẫu xem [deploy/.env.example](../deploy/.env.example) và [docs/setup.md](../docs/setup.md).
 
-⚠️ **`application.yml` hiện chứa secret mặc định cho dev** (JWT key, OAuth client, MinIO). Không dùng giá trị mặc định cho production — phải set env var override. Xem [docs/setup.md#bảo-mật-secrets](../docs/setup.md#bảo-mật-secrets).
+✅ **`application.yml` không còn chứa secret thật.** JWT keypair bắt buộc set qua env (app fail-fast nếu thiếu); profile `dev` có thể tự sinh keypair tạm bằng `jwt.generate-dev-keys=true`. OAuth client id/secret mặc định rỗng — chỉ endpoint OAuth báo lỗi khi chưa cấu hình, các luồng còn lại vẫn chạy. Cách sinh keypair dev xem [docs/setup.md](../docs/setup.md).
 
 ---
 

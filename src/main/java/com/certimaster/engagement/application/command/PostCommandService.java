@@ -117,6 +117,9 @@ public class PostCommandService {
         if (post.getStatus() == PostStatus.PUBLISHED) {
             throw BusinessException.operationFailed("Cannot schedule an already published post");
         }
+        if (post.getStatus() == PostStatus.ARCHIVED) {
+            throw BusinessException.operationFailed("Cannot schedule an archived post. Restore it first.");
+        }
 
         post.setStatus(PostStatus.SCHEDULED);
         post.setScheduledPublishAt(command.scheduledAt());

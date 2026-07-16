@@ -45,25 +45,36 @@ public class JwtProvider {
 
     @PostConstruct
     public void init() {
+        boolean hasConfiguredKeys = jwtProperties.getPrivateKey() != null && jwtProperties.getPublicKey() != null
+                && !jwtProperties.getPrivateKey().isBlank() && !jwtProperties.getPublicKey().isBlank();
+
+        if (!hasConfiguredKeys && !jwtProperties.isGenerateDevKeys()) {
+            throw new IllegalStateException(
+                    "JWT RSA keypair is not configured. Set the JWT_PRIVATE_KEY and JWT_PUBLIC_KEY environment "
+                            + "variables (base64-encoded PKCS#8 private key and X.509 public key — see docs/setup.md "
+                            + "for the openssl commands), or set jwt.generate-dev-keys=true (JWT_GENERATE_DEV_KEYS=true, "
+                            + "enabled by the 'dev' profile) to boot with an ephemeral keypair for local development.");
+        }
+
         try {
-            if (jwtProperties.getPrivateKey() != null && jwtProperties.getPublicKey() != null
-                    && !jwtProperties.getPrivateKey().isEmpty() && !jwtProperties.getPublicKey().isEmpty()) {
+            if (hasConfiguredKeys) {
                 // Load keys from configuration
                 this.privateKey = loadPrivateKey(jwtProperties.getPrivateKey());
                 this.publicKey = loadPublicKey(jwtProperties.getPublicKey());
             } else {
-                // Generate new key pair for development/testing
+                // Generate an ephemeral key pair for development/testing (opt-in via jwt.generate-dev-keys)
                 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
                 keyPairGenerator.initialize(2048);
                 KeyPair keyPair = keyPairGenerator.generateKeyPair();
                 this.privateKey = keyPair.getPrivate();
                 this.publicKey = keyPair.getPublic();
-                log.warn("JWT Provider initialized with generated RSA keys (development mode). " +
-                        "Configure jwt.private-key and jwt.public-key for production.");
+                log.warn("JWT Provider initialized with generated ephemeral RSA keys (development mode). "
+                        + "All issued tokens become invalid on restart. "
+                        + "Configure JWT_PRIVATE_KEY and JWT_PUBLIC_KEY for production.");
             }
         } catch (Exception e) {
             log.error("Failed to initialize JWT Provider", e);
-            throw new RuntimeException("Failed to initialize JWT Provider: " + e.getMessage(), e);
+            throw new IllegalStateException("Failed to initialize JWT Provider: " + e.getMessage(), e);
         }
     }
 

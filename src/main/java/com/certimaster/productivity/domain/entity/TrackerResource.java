@@ -36,6 +36,13 @@ public class TrackerResource extends BaseEntity {
     @Column(name = "collection_id")
     private Long collectionId;
 
+    /**
+     * Optional link to a learning-module certification the user is studying for.
+     * Plain id, no cross-module FK; validated against learning's public lookup API.
+     */
+    @Column(name = "certification_id")
+    private Long certificationId;
+
     public TrackerResource() {
         super();
     }
@@ -58,6 +65,9 @@ public class TrackerResource extends BaseEntity {
     public Long getCollectionId() { return collectionId; }
     public void setCollectionId(Long collectionId) { this.collectionId = collectionId; }
 
+    public Long getCertificationId() { return certificationId; }
+    public void setCertificationId(Long certificationId) { this.certificationId = certificationId; }
+
     public static Builder builder() { return new Builder(); }
 
     public static class Builder {
@@ -67,6 +77,7 @@ public class TrackerResource extends BaseEntity {
         private String title;
         private String content;
         private Long collectionId;
+        private Long certificationId;
 
         public Builder userId(Long v) { this.userId = v; return this; }
         public Builder kind(ResourceKind v) { this.kind = v; return this; }
@@ -74,6 +85,7 @@ public class TrackerResource extends BaseEntity {
         public Builder title(String v) { this.title = v; return this; }
         public Builder content(String v) { this.content = v; return this; }
         public Builder collectionId(Long v) { this.collectionId = v; return this; }
+        public Builder certificationId(Long v) { this.certificationId = v; return this; }
 
         public TrackerResource build() {
             TrackerResource o = new TrackerResource();
@@ -83,6 +95,7 @@ public class TrackerResource extends BaseEntity {
             o.title = this.title;
             o.content = this.content;
             o.collectionId = this.collectionId;
+            o.certificationId = this.certificationId;
             return o;
         }
     }

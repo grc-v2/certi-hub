@@ -53,7 +53,9 @@ public class BookmarkCommandService {
     }
 
     public void removeBookmark(RemoveBookmarkCommand command) {
-        bookmarkRepository.deleteByUserIdAndPostId(command.userId(), command.postId());
-        postRepository.updateBookmarkCount(command.postId(), -1);
+        long deleted = bookmarkRepository.deleteByUserIdAndPostId(command.userId(), command.postId());
+        if (deleted > 0) {
+            postRepository.updateBookmarkCount(command.postId(), -1);
+        }
     }
 }
